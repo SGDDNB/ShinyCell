@@ -13,6 +13,7 @@ Depends:
     data.table   (>= 1.12.2),
     Matrix       (>= 1.2-17),
     hdf5r        (>= 1.2.0),
+    R.utils      (>= 2.8.0),
     ggplot2      (>= 3.3.0),
     grid                   ,
     gridExtra    (>= 2.3.0),

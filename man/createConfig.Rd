@@ -4,7 +4,7 @@
 \alias{createConfig}
 \title{Create a shinycell config data.table}
 \usage{
-createConfig(obj, meta.to.include = NA, legendCols = 3)
+createConfig(obj, meta.to.include = NA, legendCols = 4)
 }
 \arguments{
 \item{obj}{input single-cell data object. Both Seurat objects (v3+) and 

@@ -27,7 +27,7 @@
 #' scConf = createConfig(obj)
 #'
 #' @export
-createConfig <- function(obj, meta.to.include = NA, legendCols = 3){
+createConfig <- function(obj, meta.to.include = NA, legendCols = 4){
   # Extract corresponding metadata
   if(class(obj)[1] == "Seurat"){
     objMeta = obj@meta.data

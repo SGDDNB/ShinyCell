@@ -11,14 +11,13 @@
 #'   objects (v3+) or the "logcounts" assay for SingleCellExperiment objects
 #' @param gex.slot slot in single-cell assay to plot. This is only used 
 #'   for Seurat objects (v3+). Default is to use the "data" slot
-#' @param gene.mapping specify a mapping to convert gene identifiers. A 
-#'   named vector must be supplied where \code{names(gene.mapping)} correspond 
+#' @param gene.mapping specifies whether to convert Ensembl gene IDs (e.g. 
+#'   ENSG000xxx / ENSMUSG000xxx) into more "user-friendly" gene symbols. Set 
+#'   this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
+#'   \code{FALSE} which is not to perform any conversion. Alternatively, users 
+#'   can supply a named vector where \code{names(gene.mapping)} correspond 
 #'   to the actual gene identifiers in the gene expression matrix whereas 
-#'   \code{gene.mapping} correspond to new identifiers to map to. Partial 
-#'   mapping is allowed where the mapping is only provided for some gene 
-#'   identifiers, the remaining gene identifiers will remain unchanged and a 
-#'   warning message will be presented. Default is \code{NA} which is not to 
-#'   perform any mapping
+#'   \code{gene.mapping} correspond to new identifiers to map to
 #' @param shiny.title title for shiny app
 #' @param shiny.footnotes text for shiny app footnote. Can be used to insert 
 #'   citations for the single-cell data
@@ -55,7 +54,7 @@
 #' @export
 makeShinyApp <- function(
   obj, scConf, gex.assay = NA, gex.slot = c("data", "scale.data", "counts"), 
-  gene.mapping = NA, 
+  gene.mapping = FALSE, 
   shiny.title = "scRNA-seq shiny app", shiny.footnotes = '""',
   shiny.dir = "shinyApp/", 
   default.gene1 = NA, default.gene2 = NA, default.multigene = NA, 

@@ -26,7 +26,7 @@
 #' grid.draw(leg)
 #'
 #' @export
-showLegend <- function(scConf, fontSize = 18){
+showLegend <- function(scConf, fontSize = 14){
   
   # Start making config data.table
   scLegend = list()
@@ -35,7 +35,8 @@ showLegend <- function(scConf, fontSize = 18){
       # Ensure categorical
       ggData = data.table(X = 1, Y = 1,
                           col = strsplit(scConf[ID == iMeta]$fID, "\\|")[[1]])
-      ggOut = ggplot(ggData, aes(X, Y, color = col)) + geom_point(size = 5) +
+      ggOut = ggplot(ggData, aes(X, Y, color = col)) + 
+        geom_point(size = fontSize / 5) +
         scale_color_manual(scConf[ID == iMeta]$UI,
                            values = strsplit(scConf[ID == iMeta]$fCL, "\\|")[[1]],
                            labels = strsplit(scConf[ID == iMeta]$fUI, "\\|")[[1]]) + 
@@ -52,7 +53,8 @@ showLegend <- function(scConf, fontSize = 18){
   
   # Make legend for continuous
   ggData = data.table(X = 1, Y = 1, col = 1:100)
-  ggOut = ggplot(ggData, aes(X, Y, color = col)) + geom_point(size = 5) +
+  ggOut = ggplot(ggData, aes(X, Y, color = col)) + 
+    geom_point(size = fontSize / 5) +
     scale_color_gradientn(paste0(scConf[is.na(fID)]$UI, collapse = "\n"),
                           colours = c("grey85", brewer.pal(9, "OrRd")),
                           breaks = c(1,100), labels = c("low","high")) +

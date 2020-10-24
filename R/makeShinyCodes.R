@@ -25,26 +25,51 @@
 #' @export
 makeShinyCodes <- function(shiny.title, shiny.footnotes,
                            shiny.prefix, shiny.dir){
-  ### Write code for server.R
-  fname = paste0(shiny.dir, "/server.R")
-  readr::write_file(wrLib(
-    c("shiny","shinyhelper","data.table","Matrix","magrittr","ggplot2",
-      "hdf5r","ggdendro","gridExtra")), path = fname)
-  readr::write_file(wrSVload(shiny.prefix), append = TRUE, path = fname)
-  readr::write_file(wrSVfix(), append = TRUE, path = fname)
-  readr::write_file(wrSVmain(shiny.prefix), append = TRUE, path = fname)
-  readr::write_file(wrSVend(), append = TRUE, path = fname)
-
+  if(packageVersion("readr") >= "1.4.0"){
+    ### Write code for server.R
+    fname = paste0(shiny.dir, "/server.R")
+    readr::write_file(wrLib(
+      c("shiny","shinyhelper","data.table","Matrix","magrittr","ggplot2",
+        "hdf5r","ggdendro","gridExtra")), file = fname)
+    readr::write_file(wrSVload(shiny.prefix), append = TRUE, file = fname)
+    readr::write_file(wrSVfix(), append = TRUE, file = fname)
+    readr::write_file(wrSVmain(shiny.prefix), append = TRUE, file = fname)
+    readr::write_file(wrSVend(), append = TRUE, file = fname)
+    
+    
+    ### Write code for ui.R
+    fname = paste0(shiny.dir, "/ui.R")
+    readr::write_file(wrLib(
+      c("shiny","shinyhelper","data.table","Matrix","magrittr")), file = fname)
+    readr::write_file(wrUIload(shiny.prefix), append = TRUE, file = fname)
+    readr::write_file(wrUIsingle(shiny.title), append = TRUE, file = fname)
+    readr::write_file(wrUImain(shiny.prefix), append = TRUE, file = fname)
+    readr::write_file(glue::glue(', \n'), append = TRUE, file = fname)
+    readr::write_file(wrUIend(shiny.footnotes), append = TRUE, file = fname)
+    
+  } else {
+    ### Write code for server.R
+    fname = paste0(shiny.dir, "/server.R")
+    readr::write_file(wrLib(
+      c("shiny","shinyhelper","data.table","Matrix","magrittr","ggplot2",
+        "hdf5r","ggdendro","gridExtra")), path = fname)
+    readr::write_file(wrSVload(shiny.prefix), append = TRUE, path = fname)
+    readr::write_file(wrSVfix(), append = TRUE, path = fname)
+    readr::write_file(wrSVmain(shiny.prefix), append = TRUE, path = fname)
+    readr::write_file(wrSVend(), append = TRUE, path = fname)
+    
+    
+    ### Write code for ui.R
+    fname = paste0(shiny.dir, "/ui.R")
+    readr::write_file(wrLib(
+      c("shiny","shinyhelper","data.table","Matrix","magrittr")), path = fname)
+    readr::write_file(wrUIload(shiny.prefix), append = TRUE, path = fname)
+    readr::write_file(wrUIsingle(shiny.title), append = TRUE, path = fname)
+    readr::write_file(wrUImain(shiny.prefix), append = TRUE, path = fname)
+    readr::write_file(glue::glue(', \n'), append = TRUE, path = fname)
+    readr::write_file(wrUIend(shiny.footnotes), append = TRUE, path = fname)
+  }
   
-  ### Write code for ui.R
-  fname = paste0(shiny.dir, "/ui.R")
-  readr::write_file(wrLib(
-    c("shiny","shinyhelper","data.table","Matrix","magrittr")), path = fname)
-  readr::write_file(wrUIload(shiny.prefix), append = TRUE, path = fname)
-  readr::write_file(wrUIsingle(shiny.title), append = TRUE, path = fname)
-  readr::write_file(wrUImain(shiny.prefix), append = TRUE, path = fname)
-  readr::write_file(glue::glue(', \n'), append = TRUE, path = fname)
-  readr::write_file(wrUIend(shiny.footnotes), append = TRUE, path = fname)
 }
 
 

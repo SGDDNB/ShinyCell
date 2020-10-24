@@ -9,8 +9,8 @@ makeShinyFiles(
   scConf,
   gex.assay = NA,
   gex.slot = c("data", "scale.data", "counts"),
-  gene.mapping = NA,
-  shiny.prefix,
+  gene.mapping = FALSE,
+  shiny.prefix = "sc1",
   shiny.dir = "shinyApp/",
   default.gene1 = NA,
   default.gene2 = NA,
@@ -31,14 +31,13 @@ objects (v3+) or the "logcounts" assay for SingleCellExperiment objects}
 \item{gex.slot}{slot in single-cell assay to plot. This is only used 
 for Seurat objects (v3+). Default is to use the "data" slot}
 
-\item{gene.mapping}{specify a mapping to convert gene identifiers. A 
-named vector must be supplied where \code{names(gene.mapping)} correspond 
+\item{gene.mapping}{specifies whether to convert Ensembl gene IDs (e.g. 
+ENSG000xxx / ENSMUSG000xxx) into more "user-friendly" gene symbols. Set 
+this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
+\code{FALSE} which is not to perform any conversion. Alternatively, users 
+can supply a named vector where \code{names(gene.mapping)} correspond 
 to the actual gene identifiers in the gene expression matrix whereas 
-\code{gene.mapping} correspond to new identifiers to map to. Partial 
-mapping is allowed where the mapping is only provided for some gene 
-identifiers, the remaining gene identifiers will remain unchanged and a 
-warning message will be presented. Default is \code{NA} which is not to 
-perform any mapping}
+\code{gene.mapping} correspond to new identifiers to map to}
 
 \item{shiny.prefix}{specify file prefix}
 

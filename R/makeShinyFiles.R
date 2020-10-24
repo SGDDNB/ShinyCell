@@ -18,14 +18,13 @@
 #'   objects (v3+) or the "logcounts" assay for SingleCellExperiment objects
 #' @param gex.slot slot in single-cell assay to plot. This is only used 
 #'   for Seurat objects (v3+). Default is to use the "data" slot
-#' @param gene.mapping specify a mapping to convert gene identifiers. A 
-#'   named vector must be supplied where \code{names(gene.mapping)} correspond 
+#' @param gene.mapping specifies whether to convert Ensembl gene IDs (e.g. 
+#'   ENSG000xxx / ENSMUSG000xxx) into more "user-friendly" gene symbols. Set 
+#'   this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
+#'   \code{FALSE} which is not to perform any conversion. Alternatively, users 
+#'   can supply a named vector where \code{names(gene.mapping)} correspond 
 #'   to the actual gene identifiers in the gene expression matrix whereas 
-#'   \code{gene.mapping} correspond to new identifiers to map to. Partial 
-#'   mapping is allowed where the mapping is only provided for some gene 
-#'   identifiers, the remaining gene identifiers will remain unchanged and a 
-#'   warning message will be presented. Default is \code{NA} which is not to 
-#'   perform any mapping
+#'   \code{gene.mapping} correspond to new identifiers to map to
 #' @param shiny.prefix specify file prefix 
 #' @param shiny.dir specify directory to create the shiny app in
 #' @param default.gene1 specify primary default gene to show
@@ -51,60 +50,108 @@
 #' @export
 makeShinyFiles <- function(
   obj, scConf, gex.assay = NA, gex.slot = c("data", "scale.data", "counts"), 
-  gene.mapping = NA, shiny.prefix, shiny.dir = "shinyApp/",
+  gene.mapping = FALSE, shiny.prefix = "sc1", shiny.dir = "shinyApp/",
   default.gene1 = NA, default.gene2 = NA, default.multigene = NA, 
   default.dimred = c("UMAP_1", "UMAP_2")){
   ### Preprocessing and checks
   # Generate defaults for gex.assay / gex.slot
   if(class(obj)[1] == "Seurat"){
     if(is.na(gex.assay[1])){gex.assay = "RNA"}
-    gex.matrix = slot(obj@assays[[gex.assay[1]]], gex.slot[1])
+    gex.matdim = dim(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
+    gex.rownm = rownames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
+    gex.colnm = colnames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
+    defGenes = obj@assays[[gex.assay[1]]]@var.features[1:10]
+    if(is.na(defGenes[1])){
+      warning(paste0("Variable genes not found! Did you use specify the ", 
+                     "wrong assay or wrong seurat object?"))
+      defGenes = gex.rownm[1:10]
+    }
     sc1meta = data.table(sampleID = rownames(obj@meta.data), obj@meta.data)
   } else if (class(obj)[1] == "SingleCellExperiment"){
     if(is.na(gex.assay[1])){gex.assay = "logcounts"}
-    gex.matrix = assay(obj, gex.assay[1])
+    gex.matdim = dim(SingleCellExperiment::assay(obj, gex.assay[1]))
+    gex.rownm = rownames(SingleCellExperiment::assay(obj, gex.assay[1]))
+    gex.colnm = colnames(SingleCellExperiment::assay(obj, gex.assay[1]))
+    defGenes = gex.rownm[1:10]
     sc1meta = data.table(sampleID = rownames(obj@colData), obj@colData)
   } else {
     stop("Only Seurat or SingleCellExperiment objects are accepted!")
   }
-  gex.ident = rownames(gex.matrix)
   
-  # Perform gene.mapping if provided
-  if(!is.na(gene.mapping[1])){
-    # Check if gene.mapping is partial or not
-    if(!all(gex.ident %in% names(gene.mapping))){
-      warning("Mapping for some gene identifiers are not provided!")
-      tmp1 = gex.ident[gex.ident %in% names(gene.mapping)]
+  # Perform gene.mapping if specified (also map defGenes)
+  if(gene.mapping[1] == TRUE){
+    if(sum(grepl("^ENSG000", gex.rownm)) >= sum(grepl("^ENSG000", gex.rownm))){
+      tmp1 = fread(system.file("extdata", "geneMapHS.txt.gz", 
+                               package = "ShinyCell"))
+    } else {
+      tmp1 = fread(system.file("extdata", "geneMapMM.txt.gz", 
+                               package = "ShinyCell"))
+    }
+    gene.mapping = tmp1$geneName
+    names(gene.mapping) = tmp1$geneID
+  }
+  # Check if gene.mapping is partial or not
+  if(gene.mapping[1] == FALSE){
+    gene.mapping = gex.rownm      
+    names(gene.mapping) = gex.rownm    # Basically no mapping
+  } else {
+    if(!all(gex.rownm %in% names(gene.mapping))){
+      # warning("Mapping for some gene identifiers are not provided!")
+      tmp1 = gex.rownm[gex.rownm %in% names(gene.mapping)]
       tmp1 = gene.mapping[tmp1]
-      tmp2 = gex.ident[!gex.ident %in% names(gene.mapping)]
+      tmp2 = gex.rownm[!gex.rownm %in% names(gene.mapping)]
       names(tmp2) = tmp2
       gene.mapping = c(tmp1, tmp2)
     } 
-    gene.mapping = gene.mapping[gex.ident]
-    names(gene.mapping) = NULL
-    rownames(gex.matrix) = gene.mapping
+    gene.mapping = gene.mapping[gex.rownm]
+  }
+  defGenes = gene.mapping[defGenes]
+  
+  # Check default.gene1 / default.gene2 / default.multigene
+  default.gene1 = default.gene1[1]
+  default.gene2 = default.gene2[1]
+  if(is.na(default.gene1)){default.gene1 = defGenes[1]}
+  if(is.na(default.gene2)){default.gene2 = defGenes[2]}
+  if(is.na(default.multigene[1])){default.multigene = defGenes}
+  if(default.gene1 %in% gene.mapping){
+    default.gene1 = default.gene1
+  } else if(default.gene1 %in% names(gene.mapping)){
+    default.gene1 = gene.mapping[default.gene1]
   } else {
-    gene.mapping = rownames(gex.matrix)
+    warning("default.gene1 doesn't exist in gene expression, using defaults...")
+    default.gene1 = defGenes[1]
+  }
+  if(default.gene2 %in% gene.mapping){
+    default.gene2 = default.gene2
+  } else if(default.gene2 %in% names(gene.mapping)){
+    default.gene2 = gene.mapping[default.gene2]
+  } else {
+    warning("default.gene2 doesn't exist in gene expression, using defaults...")
+    default.gene2 = defGenes[2]
+  }
+  if(all(default.multigene %in% gene.mapping)){
+    default.multigene = default.multigene
+  } else if(all(default.multigene %in% names(gene.mapping))){
+    default.multigene = gene.mapping[default.multigene]
+  } else {
+    warning(paste0("default.multigene doesn't exist in gene expression, ", 
+                   "using defaults..."))
+    default.multigene = defGenes
   }
   
-  # Check that default.gene1 / default.gene2 / default.multigene exist
-  if(!default.gene1[1] %in% gene.mapping){
-    stop("default.gene1 does not exist in gene expression!")
-  }
-  if(!default.gene2[1] %in% gene.mapping){
-    stop("default.gene2 does not exist in gene expression!")
-  }
-  if(!all(default.multigene %in% gene.mapping)){
-    stop("default.multigene does not exist in gene expression!")
-  }
-  
-  
-  
+
   ### Actual object generation
   # Make XXXmeta.rds and XXXconf.rds (updated with dimred info)
   sc1conf = scConf
   sc1conf$dimred = FALSE
   sc1meta = sc1meta[, c("sampleID", as.character(sc1conf$ID)), with = FALSE]
+  # Factor metadata again
+  for(i in as.character(sc1conf[!is.na(fID)]$ID)){
+    sc1meta[[i]] = factor(sc1meta[[i]],
+                          levels = strsplit(sc1conf[ID == i]$fID, "\\|")[[1]])
+    levels(sc1meta[[i]]) = strsplit(sc1conf[ID == i]$fUI, "\\|")[[1]]
+    sc1conf[ID == i]$fID = sc1conf[ID == i]$fUI
+  }
   # Extract dimred and append to both XXXmeta.rds and XXXconf.rds...
   if(class(obj)[1] == "Seurat"){
     for(iDR in names(obj@reductions)){
@@ -148,14 +195,35 @@ makeShinyFiles <- function(
   sc1gexpr.grp <- sc1gexpr$create_group("grp")
   sc1gexpr.grp.data <- sc1gexpr.grp$create_dataset(
     "data",  dtype = h5types$H5T_NATIVE_FLOAT,
-    space = H5S$new("simple", dims = dim(gex.matrix), maxdims = dim(gex.matrix)),
-    chunk_dims = c(1,dim(gex.matrix)[2]))
-  sc1gexpr.grp.data[, ] <- as.matrix(gex.matrix[, sc1meta$sampleID])
+    space = H5S$new("simple", dims = gex.matdim, maxdims = gex.matdim),
+    chunk_dims = c(1,gex.matdim[2]))
+  if(class(obj)[1] == "Seurat"){
+    for(i in 1:floor((gex.matdim[1]-10)/500)){
+      sc1gexpr.grp.data[((i-1)*500+1):(i*500), ] <- as.matrix(
+        slot(obj@assays[[gex.assay[1]]], gex.slot[1])[((i-1)*500+1):(i*500),])
+    }
+    sc1gexpr.grp.data[(i*500+1):gex.matdim[1], ] <- as.matrix(
+      slot(obj@assays[[gex.assay[1]]], gex.slot[1])[(i*500+1):gex.matdim[1],])
+  } else {
+    for(i in 1:floor((gex.matdim[1]-10)/500)){
+      sc1gexpr.grp.data[((i-1)*500+1):(i*500), ] <- as.matrix(
+        SingleCellExperiment::assay(obj, gex.assay[1])[((i-1)*500+1):(i*500),])
+    }
+    sc1gexpr.grp.data[(i*500+1):gex.matdim[1], ] <- as.matrix(
+      SingleCellExperiment::assay(obj, gex.assay[1])[(i*500+1):gex.matdim[1],])
+  }
+  # sc1gexpr.grp.data[, ] <- as.matrix(gex.matrix[,])
   sc1gexpr$close_all()
+  if(!all.equal(sc1meta$sampleID, gex.colnm)){
+    sc1meta$sampleID = factor(sc1meta$sampleID, levels = gex.colnm)
+    sc1meta = sc1meta[order(sampleID)]
+    sc1meta$sampleID = as.character(sc1meta$sampleID)
+  }
   
   # Make XXXgenes.rds
-  sc1gene = seq(dim(gex.matrix)[1])
-  names(sc1gene) = rownames(gex.matrix)
+  sc1gene = seq(gex.matdim[1])
+  names(gene.mapping) = NULL
+  names(sc1gene) = gene.mapping
   
   # Make XXXdef.rds (list of defaults)
   if(all(default.dimred %in% sc1conf[dimred == TRUE]$ID)){
@@ -178,13 +246,13 @@ makeShinyFiles <- function(
   }
   # Note that we stored the display name here
   sc1def = list()
-  sc1def$meta1 = scConf[default == 1]$UI    # Use display name
-  sc1def$meta2 = scConf[default == 2]$UI    # Use display name 
-  sc1def$gene1 = default.gene1[1]           # Actual == Display name
-  sc1def$gene2 = default.gene2[1]           # Actual == Display name
+  sc1def$meta1 = sc1conf[default == 1]$UI   # Use display name
+  sc1def$meta2 = sc1conf[default == 2]$UI   # Use display name 
+  sc1def$gene1 = default.gene1              # Actual == Display name
+  sc1def$gene2 = default.gene2              # Actual == Display name
   sc1def$genes = default.multigene          # Actual == Display name
   sc1def$dimred = default.dimred            # Use display name 
-  scConf = scConf[, -"default", with = FALSE]
+  sc1conf = sc1conf[, -c("fUI", "default"), with = FALSE]
   
   
   

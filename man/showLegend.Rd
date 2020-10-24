@@ -4,7 +4,7 @@
 \alias{showLegend}
 \title{Shows the legends for single-cell metadata}
 \usage{
-showLegend(scConf, fontSize = 18)
+showLegend(scConf, fontSize = 14)
 }
 \arguments{
 \item{scConf}{shinycell config data.table}
