@@ -214,7 +214,7 @@ makeShinyFiles <- function(
   }
   # sc1gexpr.grp.data[, ] <- as.matrix(gex.matrix[,])
   sc1gexpr$close_all()
-  if(!all.equal(sc1meta$sampleID, gex.colnm)){
+  if(!isTRUE(all.equal(sc1meta$sampleID, gex.colnm))){
     sc1meta$sampleID = factor(sc1meta$sampleID, levels = gex.colnm)
     sc1meta = sc1meta[order(sampleID)]
     sc1meta$sampleID = as.character(sc1meta$sampleID)

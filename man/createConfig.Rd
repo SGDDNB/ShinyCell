@@ -4,7 +4,7 @@
 \alias{createConfig}
 \title{Create a shinycell config data.table}
 \usage{
-createConfig(obj, meta.to.include = NA, legendCols = 4)
+createConfig(obj, meta.to.include = NA, legendCols = 4, maxLevels = 50)
 }
 \arguments{
 \item{obj}{input single-cell data object. Both Seurat objects (v3+) and 
@@ -20,6 +20,9 @@ SingleCellExperiment objects.}
 
 \item{legendCols}{maximum number of columns allowed when displaying the 
 legends of categorical metadata}
+
+\item{maxLevels}{maximum number of levels allowed for categorical metadata.
+Metadata with nlevels > maxLevels will be discarded automatically}
 }
 \value{
 shinycell config data.table

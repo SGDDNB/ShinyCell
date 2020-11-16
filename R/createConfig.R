@@ -16,6 +16,8 @@
 #'   SingleCellExperiment objects. 
 #' @param legendCols maximum number of columns allowed when displaying the 
 #'   legends of categorical metadata
+#' @param maxLevels maximum number of levels allowed for categorical metadata.
+#'   Metadata with nlevels > maxLevels will be discarded automatically
 #'
 #' @return shinycell config data.table
 #'
@@ -27,7 +29,8 @@
 #' scConf = createConfig(obj)
 #'
 #' @export
-createConfig <- function(obj, meta.to.include = NA, legendCols = 4){
+createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
+                         maxLevels = 50){
   # Extract corresponding metadata
   if(class(obj)[1] == "Seurat"){
     objMeta = obj@meta.data
@@ -54,20 +57,22 @@ createConfig <- function(obj, meta.to.include = NA, legendCols = 4){
     
     # Additional preprocessing for categorical metadata
     nLevels = nlevels(objMeta[[iMeta]])
-    if(nLevels >= 2){
-      tmpConf$fID = paste0(levels(objMeta[[iMeta]]), collapse = "|")
-      tmpConf$fUI = tmpConf$fID
-      tmpConf$fCL = paste0(colorRampPalette(brewer.pal(12, "Paired"))(nLevels), 
-                           collapse = "|")
-      tmpConf$fRow = ceiling(nLevels / legendCols)
-      tmpConf$grp = TRUE
-    } else if(nLevels == 1){
-      tmpConf$fID = levels(objMeta[[iMeta]])
-      tmpConf$fUI = tmpConf$fID
-      tmpConf$fCL = "black"
-      tmpConf$fRow = 1
+    if(nLevels <= maxLevels){
+      if(nLevels >= 2){
+        tmpConf$fID = paste0(levels(objMeta[[iMeta]]), collapse = "|")
+        tmpConf$fUI = tmpConf$fID
+        tmpConf$fCL = paste0(colorRampPalette(brewer.pal(12, "Paired"))(nLevels), 
+                             collapse = "|")
+        tmpConf$fRow = ceiling(nLevels / legendCols)
+        tmpConf$grp = TRUE
+      } else if(nLevels == 1){
+        tmpConf$fID = levels(objMeta[[iMeta]])
+        tmpConf$fUI = tmpConf$fID
+        tmpConf$fCL = "black"
+        tmpConf$fRow = 1
+      }
+      scConf = rbindlist(list(scConf, tmpConf))
     }
-    scConf = rbindlist(list(scConf, tmpConf))
   }
   
   # Set defaults
