@@ -69,9 +69,9 @@ makeShinyFiles <- function(
     sc1meta = data.table(sampleID = rownames(obj@meta.data), obj@meta.data)
   } else if (class(obj)[1] == "SingleCellExperiment"){
     if(is.na(gex.assay[1])){gex.assay = "logcounts"}
-    gex.matdim = dim(SingleCellExperiment::assay(obj, gex.assay[1]))
-    gex.rownm = rownames(SingleCellExperiment::assay(obj, gex.assay[1]))
-    gex.colnm = colnames(SingleCellExperiment::assay(obj, gex.assay[1]))
+    gex.matdim = dim(SummarizedExperiment::assay(obj, gex.assay[1]))
+    gex.rownm = rownames(SummarizedExperiment::assay(obj, gex.assay[1]))
+    gex.colnm = colnames(SummarizedExperiment::assay(obj, gex.assay[1]))
     defGenes = gex.rownm[1:10]
     sc1meta = data.table(sampleID = rownames(obj@colData), obj@colData)
   } else {
@@ -207,10 +207,10 @@ makeShinyFiles <- function(
   } else {
     for(i in 1:floor((gex.matdim[1]-10)/500)){
       sc1gexpr.grp.data[((i-1)*500+1):(i*500), ] <- as.matrix(
-        SingleCellExperiment::assay(obj, gex.assay[1])[((i-1)*500+1):(i*500),])
+        SummarizedExperiment::assay(obj, gex.assay[1])[((i-1)*500+1):(i*500),])
     }
     sc1gexpr.grp.data[(i*500+1):gex.matdim[1], ] <- as.matrix(
-      SingleCellExperiment::assay(obj, gex.assay[1])[(i*500+1):gex.matdim[1],])
+      SummarizedExperiment::assay(obj, gex.assay[1])[(i*500+1):gex.matdim[1],])
   }
   # sc1gexpr.grp.data[, ] <- as.matrix(gex.matrix[,])
   sc1gexpr$close_all()
