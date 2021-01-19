@@ -4,20 +4,29 @@
 \alias{addMeta}
 \title{Add a metadata to be included in the shiny app}
 \usage{
-addMeta(scConf, meta.to.add, obj)
+addMeta(scConf, meta.to.add, obj, maxLevels = 50)
 }
 \arguments{
 \item{scConf}{shinycell config data.table}
 
 \item{meta.to.add}{metadata to add from the single-cell metadata.
-Must match the column names in 
-\code{seu@meta.data} i.e. \code{colnames(seu@meta.data)} for 
-Seurat objects or the column names in 
-\code{sce@colData} i.e. \code{colnames(sce@colData)} for 
-SingleCellExperiment objects.}
+Must match one of the following:
+\itemize{
+  \item{Seurat objects}: column names in \code{seu@meta.data} 
+    i.e. \code{colnames(seu@meta.data)}
+  \item{SCE objects}: column names in \code{sce@colData} 
+    i.e. \code{colnames(sce@colData)}
+  \item{h5ad files}: column names in \code{h5ad.obs} 
+    i.e. \code{h5ad.obs.columns.values} 
+  \item{loom files}: column names in \code{loom/col_attrs} 
+    i.e. \code{loom/col_attrs.names}
+}}
 
-\item{obj}{original single-cell data object used to create shinycell 
-config data.table}
+\item{obj}{input single-cell object for Seurat (v3+) / SingleCellExperiment 
+data or input file path for h5ad / loom files}
+
+\item{maxLevels}{maximum number of levels allowed for categorical metadata.
+Metadata with nlevels > maxLevels will throw up an error message}
 }
 \value{
 updated shinycell config data.table

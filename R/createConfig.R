@@ -5,15 +5,21 @@
 #' categories of categorical metadata and (iii) colour palettes associated 
 #' with each metadata.
 #'
-#' @param obj input single-cell data object. Both Seurat objects (v3+) and 
-#'   SingleCellExperiment objects are accepted.
+#' @param obj input single-cell object for Seurat (v3+) / SingleCellExperiment 
+#'   data or input file path for h5ad / loom files
 #' @param meta.to.include columns to include from the single-cell metadata. 
 #'   Default is \code{NA}, which is to use all columns. Users can specify 
-#'   columns to include, which must match the column names in 
-#'   \code{seu@meta.data} i.e. \code{colnames(seu@meta.data)} for 
-#'   Seurat objects or the column names in 
-#'   \code{sce@colData} i.e. \code{colnames(sce@colData)} for 
-#'   SingleCellExperiment objects. 
+#'   the columns to include, which must match one of the following:
+#'   \itemize{
+#'     \item{Seurat objects}: column names in \code{seu@meta.data} 
+#'       i.e. \code{colnames(seu@meta.data)}
+#'     \item{SCE objects}: column names in \code{sce@colData} 
+#'       i.e. \code{colnames(sce@colData)}
+#'     \item{h5ad files}: column names in \code{h5ad.obs} 
+#'       i.e. \code{h5ad.obs.columns.values} 
+#'     \item{loom files}: column names in \code{loom/col_attrs} 
+#'       i.e. \code{loom/col_attrs.names}
+#'   }
 #' @param legendCols maximum number of columns allowed when displaying the 
 #'   legends of categorical metadata
 #' @param maxLevels maximum number of levels allowed for categorical metadata.
@@ -23,7 +29,7 @@
 #'
 #' @author John F. Ouyang
 #'
-#' @import data.table
+#' @import data.table reticulate hdf5r
 #'
 #' @examples
 #' scConf = createConfig(obj)
@@ -33,15 +39,48 @@ createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
                          maxLevels = 50){
   # Extract corresponding metadata
   if(class(obj)[1] == "Seurat"){
+    # Seurat Object
     objMeta = obj@meta.data
+    
   } else if (class(obj)[1] == "SingleCellExperiment"){
+    # SCE Object
     objMeta = obj@colData
+    
+  } else if (tolower(tools::file_ext(obj)) == "h5ad"){
+    # h5ad file
+    ad <- import("anndata", convert = FALSE)
+    inpH5 = ad$read_h5ad(obj)
+    objMeta = data.frame(py_to_r(inpH5$obs$values))
+    rownames(objMeta) = py_to_r(inpH5$obs_names$values)
+    colnames(objMeta) = py_to_r(inpH5$obs$columns$values)
+    for(i in colnames(objMeta)){
+      objMeta[[i]] = unlist(objMeta[[i]])   # unlist and refactor
+      if(as.character(inpH5$obs[i]$dtype) == "category"){
+        objMeta[[i]] = factor(objMeta[[i]], levels = 
+                                py_to_r(inpH5$obs[i]$cat$categories$values))
+      }
+    } 
+    
+  } else if (tolower(tools::file_ext(obj)) == "loom"){
+    # loom file
+    inpLM = hdf5r::H5File$new(obj, mode = "r+")
+    cellIdx = which(inpLM[["col_attrs"]]$names == "CellID")
+    if(length(cellIdx) != 1){
+      stop("CellID attribute not found in col_attrs in loom file!")
+    }
+    objMeta = data.frame(row.names = inpLM[["col_attrs"]][["CellID"]]$read())
+    for(i in inpLM[["col_attrs"]]$names[-cellIdx]){
+      tmp = inpLM[["col_attrs"]][[i]]$read()
+      if(length(tmp) == nrow(objMeta)){objMeta[[i]] = tmp}
+    }
+    inpLM$close_all()
+
   } else {
-    stop("Only Seurat or SingleCellExperiment objects are accepted!")
+    stop("Only Seurat/SCE objects or h5ad/loom file paths are accepted!")
   }
   
   # Checks and get list of metadata to include
-  if(is.na(meta.to.include)){meta.to.include = colnames(objMeta)}
+  if(is.na(meta.to.include[1])){meta.to.include = colnames(objMeta)}
   if(length(meta.to.include) < 2){stop("At least 2 metadata is required!")}
   
   # Start making config data.table
@@ -76,8 +115,8 @@ createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
   }
   
   # Set defaults
-  def1 = grep("ident|library", meta.to.include, ignore.case = TRUE)[1]
-  def2 = grep("clust", meta.to.include, ignore.case = TRUE)
+  def1 = grep("ident|library", scConf$ID, ignore.case = TRUE)[1]
+  def2 = grep("clust", scConf$ID, ignore.case = TRUE)
   def2 = setdiff(def2, def1)[1]
   if(is.na(def1)){def1 = setdiff(c(1,2), def2)[1]}
   if(is.na(def2)){def2 = setdiff(c(1,2), def1)[1]}

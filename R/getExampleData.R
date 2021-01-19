@@ -1,10 +1,9 @@
-#' Download example Seurat objects
+#' Download example Seurat objects / single-cell data
 #'
-#' Download example Seurat objects required for ShinyCell tutorial.
+#' Download example Seurat objects / single-cell data required for 
+#' ShinyCell tutorials.
 #'
-#' @param type can be either "single" or "multi" which downloads one or two 
-#'   Seurat objects respectively for the Quick Start/Detailed Tutorial or 
-#'   Multi-dataset Tutorial respectively
+#' @param type can be either "single" or "multi" or "h5ad" or "loom"
 #' 
 #' @return downloaded Seurat object
 #'
@@ -16,15 +15,27 @@
 #' getExampleData()
 #'
 #' @export
-getExampleData <- function(type = c("single", "multi")){
+getExampleData <- function(type = c("single", "multi", "h5ad", "loom")){
   # Setup and checks
   files = c("http://files.ddnetbio.com/hrpiFiles/readySeu_rset.rds",
-            "http://files.ddnetbio.com/hrpiFiles/readySeu_d21i.rds")
-  names(files) = c("./readySeu_rset.rds", "./readySeu_d21i.rds")
+            "http://files.ddnetbio.com/hrpiFiles/readySeu_d21i.rds",
+            "http://files.ddnetbio.com/shinyCell/endocrinogenesis_day15.h5ad",
+            "http://files.ddnetbio.com/shinyCell/xr7ne3_dim_reduction_13225_output.loom")
+  names(files) = c("./readySeu_rset.rds", 
+                   "./readySeu_d21i.rds",
+                   "./endocrinogenesis_day15.h5ad",
+                   "./xr7ne3_dim_reduction_13225_output.loom")
+  
   if(type[1] == "single"){
     files = files[1]
-  } else if(type[1] != "multi"){
-    stop("argument has to be either 'single' or 'multi'!")
+  } else if(type[1] == "multi"){
+    files = files[1:2]
+  } else if(type[1] == "h5ad"){
+    files = files[3]
+  } else if(type[1] == "loom"){
+    files = files[4]  
+  } else {
+    stop("argument has to be either 'single' or 'multi' or 'h5ad' or 'loom'!")
   }
   
   # Download files

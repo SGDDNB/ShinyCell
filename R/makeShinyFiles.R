@@ -10,20 +10,29 @@
 #' \code{makeShinyFiles} and \code{makeShinyCodes} functions are ran when 
 #' running the wrapper function \code{makeShinyApp}.
 #'
-#' @param obj input single-cell data object. Both Seurat objects (v3+) and 
-#'   SingleCellExperiment objects are accepted.
+#' @param obj input single-cell object for Seurat (v3+) / SingleCellExperiment 
+#'   data or input file path for h5ad / loom files
 #' @param scConf shinycell config data.table
 #' @param gex.assay assay in single-cell data object to use for plotting 
-#'   gene expression. Default is to either use the "RNA" assay for Seurat 
-#'   objects (v3+) or the "logcounts" assay for SingleCellExperiment objects
+#'   gene expression, which must match one of the following:
+#'   \itemize{
+#'     \item{Seurat objects}: "RNA" or "integrated" assay, 
+#'       default is "RNA"
+#'     \item{SCE objects}: "logcounts" or "normcounts" or "counts", 
+#'       default is "logcounts"
+#'     \item{h5ad files}: "X" or any assay in "layers",
+#'       default is "X"
+#'     \item{loom files}: "matrix" or any assay in "layers",
+#'       default is "matrix"
+#'   }
 #' @param gex.slot slot in single-cell assay to plot. This is only used 
 #'   for Seurat objects (v3+). Default is to use the "data" slot
-#' @param gene.mapping specifies whether to convert Ensembl gene IDs (e.g. 
-#'   ENSG000xxx / ENSMUSG000xxx) into more "user-friendly" gene symbols. Set 
-#'   this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
+#' @param gene.mapping specifies whether to convert human / mouse Ensembl gene 
+#'   IDs (e.g. ENSG000xxx / ENSMUSG000xxx) into "user-friendly" gene symbols. 
+#'   Set this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
 #'   \code{FALSE} which is not to perform any conversion. Alternatively, users 
 #'   can supply a named vector where \code{names(gene.mapping)} correspond 
-#'   to the actual gene identifiers in the gene expression matrix whereas 
+#'   to the actual gene identifiers in the gene expression matrix and 
 #'   \code{gene.mapping} correspond to new identifiers to map to
 #' @param shiny.prefix specify file prefix 
 #' @param shiny.dir specify directory to create the shiny app in
@@ -31,13 +40,16 @@
 #' @param default.gene2 specify secondary default gene to show
 #' @param default.multigene character vector specifying default genes to 
 #'   show in bubbleplot / heatmap
-#' @param default.dimred character vector specifying two default dim. reduction 
+#' @param default.dimred character vector specifying the two default dimension 
+#'   reductions. Default is to use UMAP if not TSNE embeddings
+#' @param chunkSize number of genes written to h5file at any one time. Lower 
+#'   this number to reduce memory consumption. Should not be less than 10
 #'
 #' @return data files required for shiny app
 #'
 #' @author John F. Ouyang
 #'
-#' @import data.table hdf5r
+#' @import data.table hdf5r reticulate hdf5r
 #'
 #' @examples
 #' makeShinyFiles(seu, scConf, gex.assay = "RNA", gex.slot = "data",
@@ -45,17 +57,18 @@
 #'                default.gene1 = "GATA3", default.gene2 = "DNMT3L",
 #'                default.multigene = c("ANPEP","NANOG","ZIC2","NLGN4X","DNMT3L",
 #'                                      "DPPA5","SLC7A2","GATA3","KRT19"),
-#'                default.dimred = c("UMAP_1", "UMAP_2")
+#'                default.dimred = c("UMAP_1", "UMAP_2"))
 #'
 #' @export
 makeShinyFiles <- function(
   obj, scConf, gex.assay = NA, gex.slot = c("data", "scale.data", "counts"), 
   gene.mapping = FALSE, shiny.prefix = "sc1", shiny.dir = "shinyApp/",
   default.gene1 = NA, default.gene2 = NA, default.multigene = NA, 
-  default.dimred = c("UMAP_1", "UMAP_2")){
+  default.dimred = NA, chunkSize = 500){
   ### Preprocessing and checks
   # Generate defaults for gex.assay / gex.slot
   if(class(obj)[1] == "Seurat"){
+    # Seurat Object
     if(is.na(gex.assay[1])){gex.assay = "RNA"}
     gex.matdim = dim(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
     gex.rownm = rownames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
@@ -67,20 +80,64 @@ makeShinyFiles <- function(
       defGenes = gex.rownm[1:10]
     }
     sc1meta = data.table(sampleID = rownames(obj@meta.data), obj@meta.data)
+    
   } else if (class(obj)[1] == "SingleCellExperiment"){
+    # SCE Object
     if(is.na(gex.assay[1])){gex.assay = "logcounts"}
     gex.matdim = dim(SingleCellExperiment::assay(obj, gex.assay[1]))
     gex.rownm = rownames(SingleCellExperiment::assay(obj, gex.assay[1]))
     gex.colnm = colnames(SingleCellExperiment::assay(obj, gex.assay[1]))
     defGenes = gex.rownm[1:10]
     sc1meta = data.table(sampleID = rownames(obj@colData), obj@colData)
+    
+  } else if (tolower(tools::file_ext(obj)) == "h5ad"){
+    # h5ad file
+    if(is.na(gex.assay[1])){gex.assay = "X"}
+    # Can just check X since inpH5$layers should have same dimensions
+    ad <- import("anndata", convert = FALSE)
+    sp <- import('scipy.sparse', convert = FALSE)
+    inpH5 = ad$read_h5ad(obj)
+    gex.matdim = rev(unlist(py_to_r(inpH5$X$shape)))  
+    gex.rownm = py_to_r(inpH5$var_names$values)
+    gex.colnm = py_to_r(inpH5$obs_names$values)
+    defGenes = gex.rownm[1:10]
+    sc1meta = data.table(sampleID = gex.colnm)
+    sc1meta = cbind(sc1meta, data.table(py_to_r(inpH5$obs$values)))
+    colnames(sc1meta) = c("sampleID", py_to_r(inpH5$obs$columns$values))
+    for(i in colnames(sc1meta)[-1]){
+      sc1meta[[i]] = unlist(sc1meta[[i]])   # unlist and refactor
+      if(as.character(inpH5$obs[i]$dtype) == "category"){
+        sc1meta[[i]] = factor(sc1meta[[i]], levels = 
+                                py_to_r(inpH5$obs[i]$cat$categories$values))
+      }
+    } 
+
+  } else if (tolower(tools::file_ext(obj)) == "loom"){
+    # loom file
+    if(is.na(gex.assay[1])){gex.assay = "matrix"}
+    # Can just check matrix since inpLM[["layers"]] should have same dimensions
+    inpLM = H5File$new(obj, mode = "r+")
+    gex.matdim = rev(inpLM[["matrix"]]$dims)
+    gex.rownm = inpLM[["row_attrs"]][["Gene"]]$read()
+    for(i in unique(gex.rownm[duplicated(gex.rownm)])){
+      gex.rownm[gex.rownm == i] = paste0(i, "-", seq(sum(gex.rownm == i)))
+    } # make unique gene names
+    gex.colnm = inpLM[["col_attrs"]][["CellID"]]$read()
+    defGenes = gex.rownm[1:10]
+    cellIdx = which(inpLM[["col_attrs"]]$names == "CellID")
+    sc1meta = data.table(sampleID = gex.colnm)
+    for(i in inpLM[["col_attrs"]]$names[-cellIdx]){
+      tmp = inpLM[["col_attrs"]][[i]]$read()
+      if(length(tmp) == nrow(sc1meta)){sc1meta[[i]] = tmp}
+    }
+     
   } else {
-    stop("Only Seurat or SingleCellExperiment objects are accepted!")
+    stop("Only Seurat/SCE objects or h5ad/loom file paths are accepted!")
   }
   
   # Perform gene.mapping if specified (also map defGenes)
   if(gene.mapping[1] == TRUE){
-    if(sum(grepl("^ENSG000", gex.rownm)) >= sum(grepl("^ENSG000", gex.rownm))){
+    if(sum(grepl("^ENSG000", gex.rownm)) >= sum(grepl("^ENMUSG000", gex.rownm))){
       tmp1 = fread(system.file("extdata", "geneMapHS.txt.gz", 
                                package = "ShinyCell"))
     } else {
@@ -154,8 +211,8 @@ makeShinyFiles <- function(
   }
   # Extract dimred and append to both XXXmeta.rds and XXXconf.rds...
   if(class(obj)[1] == "Seurat"){
+    # Seurat Object
     for(iDR in names(obj@reductions)){
-      # Extract dimred and append to sc1meta
       drMat = obj@reductions[[iDR]]@cell.embeddings
       if(ncol(drMat) > 5){drMat = drMat[, 1:5]}  # Take first 5 components only
       drMat = drMat[sc1meta$sampleID, ]          # Ensure ordering
@@ -169,9 +226,10 @@ makeShinyFiles <- function(
       tmp$UI = gsub("_", "", tmp$UI)
       sc1conf = rbindlist(list(sc1conf, tmp))
     }
+    
   } else if (class(obj)[1] == "SingleCellExperiment"){
+    # SCE Object
     for(iDR in names(obj@reducedDims)){
-      # Extract dimred and append to sc1meta
       drMat = obj@reducedDims[[iDR]]
       if(ncol(drMat) > 5){drMat = drMat[, 1:5]}  # Take first 5 components only
       drMat = drMat[sc1meta$sampleID, ]          # Ensure ordering
@@ -185,6 +243,45 @@ makeShinyFiles <- function(
       tmp$UI = gsub("_", "", tmp$UI)
       sc1conf = rbindlist(list(sc1conf, tmp))
     }
+    
+  } else if (tolower(tools::file_ext(obj)) == "h5ad"){
+    # h5ad file
+    for(iDR in py_to_r(inpH5$obsm_keys())){
+      drMat = py_to_r(inpH5$obsm[iDR])
+      tmpName = gsub("pca", "pc", gsub("X_", "", iDR))
+      tmpName = paste0(tmpName, "_", 1:ncol(drMat))
+      colnames(drMat) = tmpName
+      if(ncol(drMat) > 5){drMat = drMat[, 1:5]}  # Take first 5 components only
+      drMat = as.data.table(drMat)
+      sc1meta = cbind(sc1meta, drMat)
+      
+      # Update sc1conf accordingly
+      tmp = data.table(ID = colnames(drMat), UI = colnames(drMat),
+                       fID = NA, fUI = NA, fCL = NA, fRow = NA, 
+                       default = 0, grp = FALSE, dimred = TRUE)
+      tmp$UI = gsub("_", "", tmp$UI)
+      sc1conf = rbindlist(list(sc1conf, tmp))
+    }
+    
+  } else if (tolower(tools::file_ext(obj)) == "loom"){
+    # loom file
+    nDR = inpLM[["col_attrs"]]$names[
+      grep("pca|tsne|umap", inpLM[["col_attrs"]]$names, ignore.case = TRUE)]
+    for(iDR in nDR){
+      drMat = t(inpLM[["col_attrs"]][[iDR]]$read())
+      colnames(drMat) = paste0(iDR, "_", 1:ncol(drMat))
+      if(ncol(drMat) > 5){drMat = drMat[, 1:5]}  # Take first 5 components only
+      drMat = as.data.table(drMat)
+      sc1meta = cbind(sc1meta, drMat)
+      
+      # Update sc1conf accordingly
+      tmp = data.table(ID = colnames(drMat), UI = colnames(drMat),
+                       fID = NA, fUI = NA, fCL = NA, fRow = NA, 
+                       default = 0, grp = FALSE, dimred = TRUE)
+      tmp$UI = gsub("_", "", tmp$UI)
+      sc1conf = rbindlist(list(sc1conf, tmp))
+    }
+
   }
   sc1conf$ID = as.character(sc1conf$ID)     # Remove levels
   
@@ -197,21 +294,58 @@ makeShinyFiles <- function(
     "data",  dtype = h5types$H5T_NATIVE_FLOAT,
     space = H5S$new("simple", dims = gex.matdim, maxdims = gex.matdim),
     chunk_dims = c(1,gex.matdim[2]))
+  chk = chunkSize
   if(class(obj)[1] == "Seurat"){
-    for(i in 1:floor((gex.matdim[1]-10)/500)){
-      sc1gexpr.grp.data[((i-1)*500+1):(i*500), ] <- as.matrix(
-        slot(obj@assays[[gex.assay[1]]], gex.slot[1])[((i-1)*500+1):(i*500),])
+    # Seurat Object
+    for(i in 1:floor((gex.matdim[1]-8)/chk)){
+      sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- as.matrix(
+        slot(obj@assays[[gex.assay[1]]], gex.slot[1])[((i-1)*chk+1):(i*chk),])
     }
-    sc1gexpr.grp.data[(i*500+1):gex.matdim[1], ] <- as.matrix(
-      slot(obj@assays[[gex.assay[1]]], gex.slot[1])[(i*500+1):gex.matdim[1],])
-  } else {
-    for(i in 1:floor((gex.matdim[1]-10)/500)){
-      sc1gexpr.grp.data[((i-1)*500+1):(i*500), ] <- as.matrix(
-        SingleCellExperiment::assay(obj, gex.assay[1])[((i-1)*500+1):(i*500),])
+    sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- as.matrix(
+      slot(obj@assays[[gex.assay[1]]], gex.slot[1])[(i*chk+1):gex.matdim[1],])
+    
+  } else if (class(obj)[1] == "SingleCellExperiment"){
+    # SCE Object
+    for(i in 1:floor((gex.matdim[1]-8)/chk)){
+      sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- as.matrix(
+        SingleCellExperiment::assay(obj, gex.assay[1])[((i-1)*chk+1):(i*chk),])
     }
-    sc1gexpr.grp.data[(i*500+1):gex.matdim[1], ] <- as.matrix(
-      SingleCellExperiment::assay(obj, gex.assay[1])[(i*500+1):gex.matdim[1],])
+    sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- as.matrix(
+      SingleCellExperiment::assay(obj, gex.assay[1])[(i*chk+1):gex.matdim[1],])
+    
+  } else if (tolower(tools::file_ext(obj)) == "h5ad"){
+    # h5ad file
+    if(gex.assay == "X"){
+      scGEX = Matrix::t(py_to_r(sp$csc_matrix(inpH5$X)))
+    } else {
+      scGEX = Matrix::t(py_to_r(sp$csc_matrix(inpH5$layers[[gex.assay]])))
+    }
+    for(i in 1:floor((gex.matdim[1]-8)/chk)){
+      sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- as.matrix(
+        scGEX[((i-1)*chk+1):(i*chk),])
+    }
+    sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- as.matrix(
+      scGEX[(i*chk+1):gex.matdim[1],])
+
+  } else if (tolower(tools::file_ext(obj)) == "loom"){
+    # loom file
+    if(gex.assay == "matrix"){
+      for(i in 1:floor((gex.matdim[1]-8)/chk)){
+        sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- t(
+          inpLM[["matrix"]][, ((i-1)*chk+1):(i*chk)])
+      }
+      sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- t(
+        inpLM[["matrix"]][, (i*chk+1):gex.matdim[1]])
+    } else {
+      for(i in 1:floor((gex.matdim[1]-8)/chk)){
+        sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- t(
+          inpLM[["layers"]][[gex.assay]][, ((i-1)*chk+1):(i*chk)])
+      }
+      sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- t(
+        inpLM[["layers"]][[gex.assay]][, (i*chk+1):gex.matdim[1]])
+    }
   }
+
   # sc1gexpr.grp.data[, ] <- as.matrix(gex.matrix[,])
   sc1gexpr$close_all()
   if(!isTRUE(all.equal(sc1meta$sampleID, gex.colnm))){
@@ -232,6 +366,11 @@ makeShinyFiles <- function(
   } else if(all(default.dimred %in% sc1conf[dimred == TRUE]$UI)) {
     default.dimred = default.dimred    # Nothing happens
   } else {
+    warn = TRUE
+    if(is.na(default.dimred[1])){
+      default.dimred = "umap"
+      warn = FALSE
+    }
     # Try to guess... and give a warning
     guess = gsub("[0-9]", "", default.dimred[1])
     if(length(grep(guess, sc1conf[dimred == TRUE]$UI, ignore.case=TRUE)) >= 2){
@@ -241,8 +380,10 @@ makeShinyFiles <- function(
       nDR = length(sc1conf[dimred == TRUE]$UI)
       default.dimred = sc1conf[dimred == TRUE]$UI[(nDR-1):nDR]
     }
-    warning(paste0("default.dimred not found, switching to ", 
-                   default.dimred[1], " and ", default.dimred[1]))
+    if(warn){
+      warning(paste0("default.dimred not found, switching to ", 
+                     default.dimred[1], " and ", default.dimred[1]))
+    } # Warn if user-supplied default.dimred is not found
   }
   # Note that we stored the display name here
   sc1def = list()
@@ -260,7 +401,7 @@ makeShinyFiles <- function(
   saveRDS(sc1conf, file = paste0(shiny.dir, "/", shiny.prefix, "conf.rds"))
   saveRDS(sc1meta, file = paste0(shiny.dir, "/", shiny.prefix, "meta.rds"))
   saveRDS(sc1gene, file = paste0(shiny.dir, "/", shiny.prefix, "gene.rds"))
-  saveRDS(sc1def, file = paste0(shiny.dir, "/", shiny.prefix, "def.rds"))
+  saveRDS(sc1def,  file = paste0(shiny.dir, "/", shiny.prefix, "def.rds"))
   return(sc1conf)
 }
 

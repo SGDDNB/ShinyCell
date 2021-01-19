@@ -7,14 +7,14 @@
 #' not match number of colours and (iii) specified colours are invalid colours.
 #'
 #' @param scConf shinycell config data.table
-#' @param obj input single-cell data object. Both Seurat objects (v3+) and 
-#'   SingleCellExperiment objects are accepted.
+#' @param obj input single-cell object for Seurat (v3+) / SingleCellExperiment 
+#'   data or input file path for h5ad / loom files
 #'
 #' @return any potential error messages
 #'
 #' @author John F. Ouyang
 #'
-#' @import data.table
+#' @import data.table reticulate hdf5r
 #'
 #' @examples
 #' checkConfig(scConf, seu)
@@ -22,13 +22,46 @@
 #' @export
 checkConfig <- function(scConf, obj){
   nErr = 0
-  # Extract metadata to check
+  # Extract corresponding metadata
   if(class(obj)[1] == "Seurat"){
+    # Seurat Object
     objMeta = obj@meta.data
+    
   } else if (class(obj)[1] == "SingleCellExperiment"){
+    # SCE Object
     objMeta = obj@colData
+    
+  } else if (tolower(tools::file_ext(obj)) == "h5ad"){
+    # h5ad file
+    ad <- import("anndata", convert = FALSE)
+    inpH5 = ad$read_h5ad(obj)
+    objMeta = data.frame(py_to_r(inpH5$obs$values))
+    rownames(objMeta) = py_to_r(inpH5$obs_names$values)
+    colnames(objMeta) = py_to_r(inpH5$obs$columns$values)
+    for(i in colnames(objMeta)){
+      objMeta[[i]] = unlist(objMeta[[i]])   # unlist and refactor
+      if(as.character(inpH5$obs[i]$dtype) == "category"){
+        objMeta[[i]] = factor(objMeta[[i]], levels = 
+                                py_to_r(inpH5$obs[i]$cat$categories$values))
+      }
+    } 
+    
+  } else if (tolower(tools::file_ext(obj)) == "loom"){
+    # loom file
+    inpLM = hdf5r::H5File$new(obj, mode = "r+")
+    cellIdx = which(inpLM[["col_attrs"]]$names == "CellID")
+    if(length(cellIdx) != 1){
+      stop("CellID attribute not found in col_attrs in loom file!")
+    }
+    objMeta = data.frame(row.names = inpLM[["col_attrs"]][["CellID"]]$read())
+    for(i in inpLM[["col_attrs"]]$names[-cellIdx]){
+      tmp = inpLM[["col_attrs"]][[i]]$read()
+      if(length(tmp) == nrow(objMeta)){objMeta[[i]] = tmp}
+    }
+    inpLM$close_all()
+    
   } else {
-    stop("Only Seurat or SingleCellExperiment objects are accepted!")
+    stop("Only Seurat/SCE objects or h5ad/loom file paths are accepted!")
   }
   
   # Loop through metadata and check
@@ -41,7 +74,7 @@ checkConfig <- function(scConf, obj){
         nErr = nErr + 1
       }
       
-      # Check if no. factors match no. colours
+      # Check if no. factors match no. display
       fUI = strsplit(scConf[ID == iMeta]$fUI, "\\|")[[1]]
       if(length(fID) != length(fUI)){
         message(paste0("ERROR! no. factors & display do not match for: ", iMeta))

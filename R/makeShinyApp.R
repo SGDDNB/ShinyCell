@@ -3,20 +3,29 @@
 #' Make a shiny app based on the shinycell config data.table and single-cell 
 #' data object.
 #'
-#' @param obj input single-cell data object. Both Seurat objects (v3+) and 
-#'   SingleCellExperiment objects are accepted.
+#' @param obj input single-cell object for Seurat (v3+) / SingleCellExperiment 
+#'   data or input file path for h5ad / loom files
 #' @param scConf shinycell config data.table
 #' @param gex.assay assay in single-cell data object to use for plotting 
-#'   gene expression. Default is to either use the "RNA" assay for Seurat 
-#'   objects (v3+) or the "logcounts" assay for SingleCellExperiment objects
+#'   gene expression, which must match one of the following:
+#'   \itemize{
+#'     \item{Seurat objects}: "RNA" or "integrated" assay, 
+#'       default is "RNA"
+#'     \item{SCE objects}: "logcounts" or "normcounts" or "counts", 
+#'       default is "logcounts"
+#'     \item{h5ad files}: "X" or any assay in "layers",
+#'       default is "X"
+#'     \item{loom files}: "matrix" or any assay in "layers",
+#'       default is "matrix"
+#'   }
 #' @param gex.slot slot in single-cell assay to plot. This is only used 
 #'   for Seurat objects (v3+). Default is to use the "data" slot
-#' @param gene.mapping specifies whether to convert Ensembl gene IDs (e.g. 
-#'   ENSG000xxx / ENSMUSG000xxx) into more "user-friendly" gene symbols. Set 
-#'   this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
+#' @param gene.mapping specifies whether to convert human / mouse Ensembl gene 
+#'   IDs (e.g. ENSG000xxx / ENSMUSG000xxx) into "user-friendly" gene symbols. 
+#'   Set this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
 #'   \code{FALSE} which is not to perform any conversion. Alternatively, users 
 #'   can supply a named vector where \code{names(gene.mapping)} correspond 
-#'   to the actual gene identifiers in the gene expression matrix whereas 
+#'   to the actual gene identifiers in the gene expression matrix and 
 #'   \code{gene.mapping} correspond to new identifiers to map to
 #' @param shiny.title title for shiny app
 #' @param shiny.footnotes text for shiny app footnote. Can be used to insert 
@@ -28,13 +37,13 @@
 #' @param default.multigene character vector specifying the default genes to 
 #'   show in bubbleplot / heatmap
 #' @param default.dimred character vector specifying the two default dimension 
-#'   reductions 
+#'   reductions. Default is to use UMAP if not TSNE embeddings
 #'
 #' @return directory containing shiny app
 #'
 #' @author John F. Ouyang
 #'
-#' @import data.table hdf5r
+#' @import data.table
 #'
 #' @examples
 #' footnote = paste0(
@@ -49,7 +58,8 @@
 #'              shiny.dir = "shinyApp/", shiny.footnotes = footnote,
 #'              default.gene1 = "NANOG", default.gene2 = "DNMT3L",
 #'              default.multigene = c("ANPEP","NANOG","ZIC2","NLGN4X","DNMT3L",
-#'                                    "DPPA5","SLC7A2","GATA3","KRT19")) 
+#'                                    "DPPA5","SLC7A2","GATA3","KRT19"),
+#'              default.dimred = c("UMAP_1", "UMAP_2")) 
 #'
 #' @export
 makeShinyApp <- function(
@@ -58,7 +68,7 @@ makeShinyApp <- function(
   shiny.title = "scRNA-seq shiny app", shiny.footnotes = '""',
   shiny.dir = "shinyApp/", 
   default.gene1 = NA, default.gene2 = NA, default.multigene = NA, 
-  default.dimred = c("UMAP_1", "UMAP_2")){
+  default.dimred = NA){
   
   # Checks are performed in respective functions
   # Wrapper for two main functions

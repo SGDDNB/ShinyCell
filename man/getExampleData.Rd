@@ -2,20 +2,19 @@
 % Please edit documentation in R/getExampleData.R
 \name{getExampleData}
 \alias{getExampleData}
-\title{Download example Seurat objects}
+\title{Download example Seurat objects / single-cell data}
 \usage{
-getExampleData(type = c("single", "multi"))
+getExampleData(type = c("single", "multi", "h5ad", "loom"))
 }
 \arguments{
-\item{type}{can be either "single" or "multi" which downloads one or two 
-Seurat objects respectively for the Quick Start/Detailed Tutorial or 
-Multi-dataset Tutorial respectively}
+\item{type}{can be either "single" or "multi" or "h5ad" or "loom"}
 }
 \value{
 downloaded Seurat object
 }
 \description{
-Download example Seurat objects required for ShinyCell tutorial.
+Download example Seurat objects / single-cell data required for 
+ShinyCell tutorials.
 }
 \examples{
 getExampleData()

@@ -16,28 +16,37 @@ makeShinyApp(
   default.gene1 = NA,
   default.gene2 = NA,
   default.multigene = NA,
-  default.dimred = c("UMAP_1", "UMAP_2")
+  default.dimred = NA
 )
 }
 \arguments{
-\item{obj}{input single-cell data object. Both Seurat objects (v3+) and 
-SingleCellExperiment objects are accepted.}
+\item{obj}{input single-cell object for Seurat (v3+) / SingleCellExperiment 
+data or input file path for h5ad / loom files}
 
 \item{scConf}{shinycell config data.table}
 
 \item{gex.assay}{assay in single-cell data object to use for plotting 
-gene expression. Default is to either use the "RNA" assay for Seurat 
-objects (v3+) or the "logcounts" assay for SingleCellExperiment objects}
+gene expression, which must match one of the following:
+\itemize{
+  \item{Seurat objects}: "RNA" or "integrated" assay, 
+    default is "RNA"
+  \item{SCE objects}: "logcounts" or "normcounts" or "counts", 
+    default is "logcounts"
+  \item{h5ad files}: "X" or any assay in "layers",
+    default is "X"
+  \item{loom files}: "matrix" or any assay in "layers",
+    default is "matrix"
+}}
 
 \item{gex.slot}{slot in single-cell assay to plot. This is only used 
 for Seurat objects (v3+). Default is to use the "data" slot}
 
-\item{gene.mapping}{specifies whether to convert Ensembl gene IDs (e.g. 
-ENSG000xxx / ENSMUSG000xxx) into more "user-friendly" gene symbols. Set 
-this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
+\item{gene.mapping}{specifies whether to convert human / mouse Ensembl gene 
+IDs (e.g. ENSG000xxx / ENSMUSG000xxx) into "user-friendly" gene symbols. 
+Set this to \code{TRUE} if you are using Ensembl gene IDs. Default is 
 \code{FALSE} which is not to perform any conversion. Alternatively, users 
 can supply a named vector where \code{names(gene.mapping)} correspond 
-to the actual gene identifiers in the gene expression matrix whereas 
+to the actual gene identifiers in the gene expression matrix and 
 \code{gene.mapping} correspond to new identifiers to map to}
 
 \item{shiny.title}{title for shiny app}
@@ -56,7 +65,7 @@ to create a new directory named "shinyApp"}
 show in bubbleplot / heatmap}
 
 \item{default.dimred}{character vector specifying the two default dimension 
-reductions}
+reductions. Default is to use UMAP if not TSNE embeddings}
 }
 \value{
 directory containing shiny app
@@ -78,7 +87,8 @@ makeShinyApp(seu, scConf,
              shiny.dir = "shinyApp/", shiny.footnotes = footnote,
              default.gene1 = "NANOG", default.gene2 = "DNMT3L",
              default.multigene = c("ANPEP","NANOG","ZIC2","NLGN4X","DNMT3L",
-                                   "DPPA5","SLC7A2","GATA3","KRT19")) 
+                                   "DPPA5","SLC7A2","GATA3","KRT19"),
+             default.dimred = c("UMAP_1", "UMAP_2")) 
 
 }
 \author{

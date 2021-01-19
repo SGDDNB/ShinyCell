@@ -9,8 +9,8 @@ checkConfig(scConf, obj)
 \arguments{
 \item{scConf}{shinycell config data.table}
 
-\item{obj}{input single-cell data object. Both Seurat objects (v3+) and 
-SingleCellExperiment objects are accepted.}
+\item{obj}{input single-cell object for Seurat (v3+) / SingleCellExperiment 
+data or input file path for h5ad / loom files}
 }
 \value{
 any potential error messages

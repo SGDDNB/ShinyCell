@@ -7,16 +7,22 @@
 createConfig(obj, meta.to.include = NA, legendCols = 4, maxLevels = 50)
 }
 \arguments{
-\item{obj}{input single-cell data object. Both Seurat objects (v3+) and 
-SingleCellExperiment objects are accepted.}
+\item{obj}{input single-cell object for Seurat (v3+) / SingleCellExperiment 
+data or input file path for h5ad / loom files}
 
 \item{meta.to.include}{columns to include from the single-cell metadata. 
 Default is \code{NA}, which is to use all columns. Users can specify 
-columns to include, which must match the column names in 
-\code{seu@meta.data} i.e. \code{colnames(seu@meta.data)} for 
-Seurat objects or the column names in 
-\code{sce@colData} i.e. \code{colnames(sce@colData)} for 
-SingleCellExperiment objects.}
+the columns to include, which must match one of the following:
+\itemize{
+  \item{Seurat objects}: column names in \code{seu@meta.data} 
+    i.e. \code{colnames(seu@meta.data)}
+  \item{SCE objects}: column names in \code{sce@colData} 
+    i.e. \code{colnames(sce@colData)}
+  \item{h5ad files}: column names in \code{h5ad.obs} 
+    i.e. \code{h5ad.obs.columns.values} 
+  \item{loom files}: column names in \code{loom/col_attrs} 
+    i.e. \code{loom/col_attrs.names}
+}}
 
 \item{legendCols}{maximum number of columns allowed when displaying the 
 legends of categorical metadata}
