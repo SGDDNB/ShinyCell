@@ -73,10 +73,11 @@ makeShinyFiles <- function(
     gex.matdim = dim(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
     gex.rownm = rownames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
     gex.colnm = colnames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
-    defGenes = obj@assays[[gex.assay[1]]]@var.features[1:10]
+    # defGenes = obj@assays[[gex.assay[1]]]@var.features[1:10]
+    defGenes = Seurat::VariableFeatures(obj)[1:10]
     if(is.na(defGenes[1])){
-      warning(paste0("Variable genes not found! Did you use specify the ", 
-                     "wrong assay or wrong seurat object?"))
+      warning(paste0("Variable genes for seurat object not found! Have you ",
+                     "ran `FindVariableFeatures` or `SCTransform`?"))
       defGenes = gex.rownm[1:10]
     }
     sc1meta = data.table(sampleID = rownames(obj@meta.data), obj@meta.data)
