@@ -38,13 +38,16 @@
 createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
                          maxLevels = 50){
   # Extract corresponding metadata
+  drExist = TRUE
   if(class(obj)[1] == "Seurat"){
     # Seurat Object
     objMeta = obj@meta.data
+    if(length(names(obj@reductions)) == 0){drExist = FALSE}
     
   } else if (class(obj)[1] == "SingleCellExperiment"){
     # SCE Object
     objMeta = obj@colData
+    if(length(names(obj@reducedDims)) == 0){drExist = FALSE}
     
   } else if (tolower(tools::file_ext(obj)) == "h5ad"){
     # h5ad file
@@ -60,6 +63,7 @@ createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
                                 py_to_r(inpH5$obs[i]$cat$categories$values))
       }
     } 
+    if(length(py_to_r(inpH5$obsm_keys())) == 0){drExist = FALSE}
     
   } else if (tolower(tools::file_ext(obj)) == "loom"){
     # loom file
@@ -73,10 +77,17 @@ createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
       tmp = inpLM[["col_attrs"]][[i]]$read()
       if(length(tmp) == nrow(objMeta)){objMeta[[i]] = tmp}
     }
+    nDR = inpLM[["col_attrs"]]$names[
+      grep("pca|tsne|umap", inpLM[["col_attrs"]]$names, ignore.case = TRUE)]
+    if(length(nDR) == 0){drExist = FALSE}
     inpLM$close_all()
 
   } else {
     stop("Only Seurat/SCE objects or h5ad/loom file paths are accepted!")
+  }
+  if(!drExist){
+    stop(paste0("ShinyCell did not detect any dimension reduction data \n", 
+                "       e.g. umap / tsne. Has any analysis been performed?"))
   }
   
   # Checks and get list of metadata to include
@@ -122,6 +133,12 @@ createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
   if(is.na(def2)){def2 = setdiff(c(1,2), def1)[1]}
   scConf[def1]$default = 1
   scConf[def2]$default = 2
+  
+  # STOP if there is no single multi-level covariate
+  if(nrow(scConf[grp == TRUE]) == 0){
+    stop(paste0("ShinyCell did not detect any multi-group cell metadata \n", 
+                "       e.g. library / cluster. Has any analysis been performed?"))
+  }
   
   return(scConf)
 }

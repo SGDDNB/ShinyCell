@@ -4,16 +4,26 @@
 \alias{makeShinyCodes}
 \title{Generate code files required for shiny app (one dataset)}
 \usage{
-makeShinyCodes(shiny.title, shiny.footnotes, shiny.prefix, shiny.dir)
+makeShinyCodes(
+  shiny.title,
+  shiny.footnotes,
+  shiny.prefix,
+  shiny.dir,
+  ganalytics = NA
+)
 }
 \arguments{
 \item{shiny.title}{title for shiny app}
 
-\item{shiny.footnotes}{text for shiny app footnote}
+\item{shiny.footnotes}{text for shiny app footnote. When given as a list, 
+citation can be inserted by specifying author, title, journal, volume, 
+page, year, doi, link. See example below.}
 
 \item{shiny.prefix}{specify file prefix}
 
 \item{shiny.dir}{specify directory to create the shiny app in}
+
+\item{ganalytics}{Google analytics tracking ID (e.g. "UA-123456789-0")}
 }
 \value{
 server.R and ui.R required for shiny app
@@ -27,7 +37,17 @@ please use \code{makeShinyCodesMulti()} instead. Note that both
 running the wrapper function \code{makeShinyApp}.
 }
 \examples{
-makeShinyCodes(shiny.title = "scRNA-seq shiny app", shiny.footnotes = '""',
+# Example citation
+citation = list(
+  author  = "Liu X., Ouyang J.F., Rossello F.J. et al.",
+  title   = "",
+  journal = "Nature",
+  volume  = "586",
+  page    = "101-107",
+  year    = "2020", 
+  doi     = "10.1038/s41586-020-2734-6",
+  link    = "https://www.nature.com/articles/s41586-020-2734-6")
+makeShinyCodes(shiny.title = "scRNA-seq shiny app", shiny.footnotes = "",
                shiny.prefix = "sc1", shiny.dir = "shinyApp/")
 
 }

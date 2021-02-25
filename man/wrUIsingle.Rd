@@ -4,10 +4,12 @@
 \alias{wrUIsingle}
 \title{Write code for front portion of ui.R}
 \usage{
-wrUIsingle(title)
+wrUIsingle(title, ganalytics)
 }
 \arguments{
 \item{title}{shiny app title}
+
+\item{ganalytics}{Google analytics tracking ID (e.g. "UA-123456789-0")}
 }
 \description{
 Write code for front portion of ui.R

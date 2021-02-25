@@ -395,6 +395,25 @@ makeShinyFiles <- function(
   sc1def$gene2 = default.gene2              # Actual == Display name
   sc1def$genes = default.multigene          # Actual == Display name
   sc1def$dimred = default.dimred            # Use display name 
+  tmp = nrow(sc1conf[default != 0 & grp == TRUE])
+  if(tmp == 2){
+    sc1def$grp1 = sc1def$meta1
+    sc1def$grp2 = sc1def$meta2
+  } else if(tmp == 1){
+    sc1def$grp1 = sc1conf[default != 0 & grp == TRUE]$UI
+    if(nrow(sc1conf[default == 0 & grp == TRUE]) == 0){
+      sc1def$grp2 = sc1def$grp1
+    } else {
+      sc1def$grp2 = sc1conf[default == 0 & grp == TRUE]$UI[1]
+    }
+  } else {
+    sc1def$grp1 = sc1conf[default == 0 & grp == TRUE]$UI[1]
+    if(nrow(sc1conf[default == 0 & grp == TRUE]) < 2){
+      sc1def$grp2 = sc1def$grp1
+    } else {
+      sc1def$grp2 = sc1conf[default == 0 & grp == TRUE]$UI[2]
+    }
+  }
   sc1conf = sc1conf[, -c("fUI", "default"), with = FALSE]
   
   
