@@ -3,14 +3,14 @@ title: |
   | Tutorial for other supported file formats (h5ad / loom / SCE)
 author: |
   | John F. Ouyang
-date: "Jan 2021"
+date: "Feb 2021"
 output:
+  pdf_document: default
   html_document: 
     toc: true
     toc_depth: 2
     toc_float: 
       collapsed: false
-  pdf_document: default
 fontsize: 12pt
 pagetitle: "3otherformat"
 ---
@@ -36,9 +36,9 @@ https://htmlpreview.github.io/?https://github.com/SGDDNB/ShinyCell/blob/master/d
 For using h5ad file as input, we will demonstrate using the scRNA-seq of 
 endocrine development in the pancreas, taken from 
 [Bastidas-Ponce et al. Development (2018)](
-https://dev.biologists.org/content/146/12/dev173849.abstract). The dataset has 
-been further processed for use with the [scVelo package](
-https://scvelo.readthedocs.io/Pancreas.html).
+https://dev.biologists.org/content/146/12/dev173849.abstract). The dataset is 
+taken from the [scVelo package](https://scvelo.readthedocs.io/Pancreas.html) 
+tutorial.
 
 ``` r
 library(ShinyCell)
@@ -61,12 +61,21 @@ looking like this:
 
 
 ## loom file as input
-For using loom file as input, we will demonstrate using the scRNA-seq of 
+The loom file format is a hdf5-based file format that is commonly used in cell 
+atlases e.g. Human Cell Atlas. We would like to emphasize again that ShinyCell 
+is a visualisation tool and _not an analysis tool_ with the aim of providing 
+sharable visualisation of _already-analysed_ single-cell datasets. We assume 
+that common single-cell analysis such as dimension reduction and clustering 
+has been performed. Thus, loom files downloaded directly from cell atlas data 
+portals may not have these analysis performed and ShinyCell will not work 
+accordingly.
+
+To demonstrate using a loom file as input, we will be using the scRNA-seq of 
 hematopoietic differentiation, taken from 
 [Setty et al. Nature Biotechnology (2019)](
-https://www.nature.com/articles/s41587-019-0068-4). The dataset has 
-been further processed using the [ASAP pipeline; key: xr7ne3](
-https://asap.epfl.ch/).
+https://www.nature.com/articles/s41587-019-0068-4). Dimension reduction and 
+clustering analysis of this dataset has been performed using the 
+[ASAP pipeline; key: xr7ne3](https://asap.epfl.ch/).
 
 ``` r
 library(ShinyCell)
@@ -78,11 +87,8 @@ scConf = createConfig(inpFile, meta.to.include =
                           "_Protein_Coding_Content","_Ribosomal_Content",
                           "_clust_1_seurat","bundle_version","donor_organism.sex"))
 
-# Manually factor "_clust_1_seurat" column
-scConf[ID == "_clust_1_seurat"]$fID = paste(seq(26), collapse = "|")
-scConf[ID == "_clust_1_seurat"]$fUI = paste(seq(26), collapse = "|")
-scConf[ID == "_clust_1_seurat"]$fCL = 
-  paste0(colorRampPalette(brewer.pal(12, "Paired"))(26), collapse = "|")
+# Make "_clust_1_seurat" categorical and default
+scConf = makeMetaCategorical(scConf, "_clust_1_seurat", inpFile)
 scConf[ID == "_clust_1_seurat"]$fRow = 4
 scConf = modDefault(scConf, "_clust_1_seurat", "bundle_version")
 
@@ -92,13 +98,15 @@ makeShinyApp(inpFile, scConf,
 ```
 
 Note that loom files do not necessarily store the categories / levels 
-information for discrete single-cell metadata. ShinyCell tries to circumvent 
-this by automatically factoring all columns containing text. However, there 
+information for categorical single-cell metadata. ShinyCell tries to circumvent 
+this by automatically factoring all metadata containing text. However, there 
 are cases where the single-cell metadata are integers and it is difficult to 
 automatically detect if these metadata are meant to be treated in a discrete 
 or continuous manner. In this loom file, the seurat clusters `_clust_1_seurat` 
-is one such example and the categories / levels information have to be 
-manually added into the ShinyCell configuration. 
+is one such example. To make the seurat clusters a categorical metadata, we 
+ran the function `makeMetaCategorical()`. We further modified the number of 
+rows in the legends of the seurat clusters `_clust_1_seurat` metadata to 4 and 
+also set the metadata to be plotted by default.
 
 Running the above code generates a shiny app in the `shinyAppLoom/` folder,
 looking like this:

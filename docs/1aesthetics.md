@@ -1,16 +1,16 @@
 ---
 title: | 
-  | Tutorial for changing ShinyCell aesthetics and other settings
+  | Tutorial for customising ShinyCell aesthetics and other settings
 author: |
   | John F. Ouyang
-date: "Jan 2021"
+date: "Feb 2021"
 output:
+  pdf_document: default
   html_document: 
     toc: true
     toc_depth: 2
     toc_float: 
       collapsed: false
-  pdf_document: default
 fontsize: 12pt
 pagetitle: "1aesthetics"
 ---
@@ -141,21 +141,25 @@ showOrder(scConf)
 ## Generate Shiny app
 After modifying `scConf` to one's satisfaction, we are almost ready to build 
 the Shiny app. Prior to building the Shiny app, users can run `checkConfig()` 
-to check if the `scConf` is ready. This is especially useful if users have 
-manually modified the `scConf`. Users can also add a footnote to the Shiny app 
-and one potential use is to include the reference for the dataset. Here, we 
-provide an example of including the citation as the Shiny app footnote.
+to check if the `scConf` is in the right format. This is especially useful if 
+users have manually modified the `scConf`. Users can also add a footnote to 
+the Shiny app, which can be plain text or the citation for the dataset. To 
+input a citation, a list is required, populating various information e.g. 
+authors, title, year. An example of including the citation as the Shiny app 
+footnote is provided below.
 
 ``` r
 # Build shiny app
 checkConfig(scConf, seu)
-footnote = paste0(
-  'strong("Reference: "), "Liu X., Ouyang J.F., Rossello F.J. et al. ",',
-  'em("Nature "), strong("586,"), "101-107 (2020) ",',
-  'a("doi:10.1038/s41586-020-2734-6",',
-  'href = "https://www.nature.com/articles/s41586-020-2734-6",',
-  'target="_blank"), style = "font-size: 125%;"'
-)
+citation = list(
+  author  = "Liu X., Ouyang J.F., Rossello F.J. et al.",
+  title   = "",
+  journal = "Nature",
+  volume  = "586",
+  page    = "101-107",
+  year    = "2020", 
+  doi     = "10.1038/s41586-020-2734-6",
+  link    = "https://www.nature.com/articles/s41586-020-2734-6")
 ```
 
 Now, we can build the shiny app! A few more things need to be specified here. 
@@ -166,7 +170,7 @@ specifying `gene.mapping = TRUE`. If your dataset is already in gene symbols,
 you can leave out this argument to not perform the conversion. Furthermore, 
 `ShinyCell` uses the "RNA" assay and "data" slot in Seurat objects as the gene 
 expression data. If you have performed any data integration and would like to 
-use the integrated data instead, please specify `gex.assay = "integrated`. 
+use the integrated data instead, please specify `gex.assay = "integrated"`. 
 Also, default genes to plot can be specified where `default.gene1` and 
 `default.gene2` corresponds to the default genes when plotting gene expression 
 on reduced dimensions while `default.multigene` contains the default set of 
@@ -178,7 +182,7 @@ default genes.
 makeShinyApp(seu, scConf, gene.mapping = TRUE, 
              gex.assay = "RNA", gex.slot = "data",
              shiny.title = "ShinyCell Tutorial",
-             shiny.dir = "shinyApp/", shiny.footnotes = footnote,
+             shiny.dir = "shinyApp/", shiny.footnotes = citation,
              default.gene1 = "NANOG", default.gene2 = "DNMT3L",
              default.multigene = c("ANPEP","NANOG","ZIC2","NLGN4X","DNMT3L",
                                    "DPPA5","SLC7A2","GATA3","KRT19")) 
@@ -189,26 +193,55 @@ required for the Shiny app and (ii) the code files, namely `server.R` and
 `ui.R`. The generated files can be found in the `shinyApp/` folder. To run the 
 app locally, use RStudio to open either `server.R` or `ui.R` in the shiny app 
 folder and click on "Run App" in the top right corner. The shiny app can also 
-be deployed via online platforms e.g. [shinyapps.io](https://www.shinyapps.io/) 
-or hosted via Shiny Server. The shiny app look like this, containing five tabs. 
-Cell information and gene expression are plotted on UMAP in the first tab while 
-two different cell information / gene expression are plotted on UMAP in the 
-second / third tab respectively. Violin plot or box plot of cell information or 
-gene expression distribution can be found in the fourth tab. Lastly, a 
-bubbleplot or heatmap can be generated in the fifth tab. 
-A live version of the shiny app can be found at 
-[shinycell1.ddnetbio.com](http://shinycell1.ddnetbio.com).
+be deployed online via online platforms e.g. 
+[shinyapps.io](https://www.shinyapps.io/) and Amazon Web Services (AWS) or be 
+hosted via Shiny Server. For further details, refer to 
+[Instructions on how to deploy ShinyCell apps online](
+https://htmlpreview.github.io/?https://github.com/SGDDNB/ShinyCell/blob/master/docs/4cloud.html).
 
+
+## Different visualisations in the Shiny app
 With the Shiny app, users can interactively explore their single-cell data, 
 varying the cell information / gene expression to plot. Furthermore, these 
 plots can be exported into PDF / PNG for presentations / publications. Users 
 can also click on the "Toggle graphics controls" or "Toggle plot controls" to 
-fine-tune certain aspects of the plots e.g. point size.
+fine-tune certain aspects of the plots e.g. point size. A live version of this 
+shiny app can be found at [shinycell1.ddnetbio.com](http://shinycell1.ddnetbio.com).
+
+The shiny app contains seven tabs (highlighted in blue box), with the opening 
+page showing the first tab "CellInfo vs GeneExpr" (see below), plotting both 
+cell information and gene expression side-by-side on reduced dimensions e.g. 
+UMAP. Users can click on the toggle on the bottom left corner to display the 
+cell numbers in each cluster / group and the number of cells expressing a gene.
+The next two tabs are similar, showing either two cell information 
+side-by-side (second tab: "CellInfo vs CellInfo") or two gene expressions 
+side-by-side (third tab: "GeneExpr vs GeneExpr").
 
 ![](../images/detailed-shiny1.png)
+
+The fourth tab "Gene coexpression" blends the gene expression of two genes, 
+given by two different colour hues, onto the same reduced dimensions plot. 
+Furthermore, the number of cells expressing either or both genes are given. 
+
 ![](../images/detailed-shiny2.png)
+
+The fifth tab "Violinplot / Boxplot" plots the distribution of continuous cell 
+information e.g. nUMI or module scores or gene expression across each cluster 
+/ group using violin plots or box plots.
+
 ![](../images/detailed-shiny3.png)
+
+The sixth tab "Proportion plot" plots the composition of different clusters / 
+groups of cells using proportion plots. Users can also plot the cell numbers 
+instead of proportions.
+
 ![](../images/detailed-shiny4.png)
+
+The seventh tab "Bubbleplot / Heatmap" allows users to visualise the 
+expression of multiple genes across each cluster / group using bubbleplots / 
+heatmap. The genes (rows) and groups (columns) can be furthered clustered 
+using hierarchical clustering.
+
 ![](../images/detailed-shiny5.png)
 
 

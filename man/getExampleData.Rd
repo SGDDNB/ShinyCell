@@ -4,10 +4,11 @@
 \alias{getExampleData}
 \title{Download example Seurat objects / single-cell data}
 \usage{
-getExampleData(type = c("single", "multi", "h5ad", "loom"))
+getExampleData(type = c("single", "multi", "h5ad", "loom", "plaintext"))
 }
 \arguments{
-\item{type}{can be either "single" or "multi" or "h5ad" or "loom"}
+\item{type}{can be either "single" or "multi" or "h5ad" or "loom" 
+or "plaintext"}
 }
 \value{
 downloaded Seurat object
