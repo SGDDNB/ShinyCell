@@ -24,6 +24,10 @@ Key features of `ShinyCell` include:
 - Web interface have low memory footprint due to the use of hdf5 file system 
   to store the gene expression. Only the expression of genes that are plotted 
   are loaded into memory
+
+- Inclusion of less common single-cell visualisations, namely coexpression 
+  plots and proportion plots that provide additional information on top of 
+  low-dimensional embeddings
   
 - Users can export visualisations as PDF or PNG images for presentation or 
   publication use
