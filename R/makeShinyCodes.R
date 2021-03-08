@@ -43,7 +43,7 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
     fname = paste0(shiny.dir, "/server.R")
     readr::write_file(wrLib(
       c("shiny","shinyhelper","data.table","Matrix","DT","magrittr","ggplot2",
-        "hdf5r","ggdendro","gridExtra")), file = fname)
+        "ggrepel","hdf5r","ggdendro","gridExtra")), file = fname)
     readr::write_file(wrSVload(shiny.prefix), append = TRUE, file = fname)
     readr::write_file(wrSVfix(), append = TRUE, file = fname)
     readr::write_file(wrSVmain(shiny.prefix), append = TRUE, file = fname)
@@ -72,7 +72,7 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
     fname = paste0(shiny.dir, "/server.R")
     readr::write_file(wrLib(
       c("shiny","shinyhelper","data.table","Matrix","DT","magrittr","ggplot2",
-        "hdf5r","ggdendro","gridExtra")), path = fname)
+        "ggrepel","hdf5r","ggdendro","gridExtra")), path = fname)
     readr::write_file(wrSVload(shiny.prefix), append = TRUE, path = fname)
     readr::write_file(wrSVfix(), append = TRUE, path = fname)
     readr::write_file(wrSVmain(shiny.prefix), append = TRUE, path = fname)

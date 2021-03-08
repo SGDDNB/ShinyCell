@@ -36,16 +36,20 @@ delMeta <- function(scConf, meta.to.del){
   
   # Reassign default if it is removed
   if(!1 %in% scConf$default){
-    def1 = grep("ident|library", scConf[default != 2]$ID, ignore.case = TRUE)[1]
-    if(is.na(def1)){def1 = setdiff(c(1,2), scConf[default == 2, .I])[1]}
-    scConf[def1]$default = 1
+    chkname = paste0(scConf[default != 2]$ID, "_", scConf[default != 2]$UI)
+    def1 = scConf[default != 2]$ID[grep("ident|library", chkname, 
+                                        ignore.case = TRUE)[1]]
+    if(is.na(def1)){def1 = scConf[default != 2]$ID[1]}
+    scConf[ID == def1]$default = 1
   }
   if(!2 %in% scConf$default){
-    def2 = grep("clust", scConf[default != 1]$ID, ignore.case = TRUE)[1]
-    if(is.na(def2)){def2 = setdiff(c(1,2), scConf[default == 1, .I])[1]}
-    scConf[def2]$default = 2
+    chkname = paste0(scConf[default != 1]$ID, "_", scConf[default != 1]$UI)
+    def2 = scConf[default != 1]$ID[grep("clust", chkname, 
+                                        ignore.case = TRUE)[1]]
+    if(is.na(def2)){def2 = scConf[default != 1]$ID[1]}
+    scConf[ID == def2]$default = 2
   }
-
+  
   return(scConf)
 }
 
