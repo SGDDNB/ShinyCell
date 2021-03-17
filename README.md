@@ -13,32 +13,42 @@ respectively.
 
 Key features of `ShinyCell` include: 
 
-- Written in R and uses the Shiny package, allowing for easy sharing on online 
-  platforms e.g. [shinyapps.io](https://www.shinyapps.io/) and Amazon Web 
-  Services (AWS) or be hosted via Shiny Server
+1. Written in R and uses the Shiny package, allowing for easy sharing on online 
+   platforms e.g. [shinyapps.io](https://www.shinyapps.io/) and Amazon Web 
+   Services (AWS) or be hosted via Shiny Server
 
-- Supports all of the major single-cell data formats (h5ad / loom / Seurat / 
-  SingleCellExperiment) and we also include a simple tutorial to process 
-  plain-text gene expression matrices
+2. Supports all of the major single-cell data formats (h5ad / loom / Seurat / 
+   SingleCellExperiment) and we also include a simple tutorial to process 
+   plain-text gene expression matrices
   
-- Web interface have low memory footprint due to the use of hdf5 file system 
-  to store the gene expression. Only the expression of genes that are plotted 
-  are loaded into memory
+3. Web interface have low memory footprint due to the use of hdf5 file system 
+   to store the gene expression. Only the expression of genes that are plotted 
+   are loaded into memory
 
-- Inclusion of less common single-cell visualisations, namely coexpression 
-  plots and proportion plots that provide additional information on top of 
-  low-dimensional embeddings
+4. Inclusion of less common single-cell visualisations, namely coexpression 
+   plots and proportion plots that provide additional information on top of 
+   low-dimensional embeddings
   
-- Users can export visualisations as PDF or PNG images for presentation or 
-  publication use
+5. Users can export visualisations as PDF or PNG images for presentation or 
+   publication use
 
-- Ability to include multiple single-cell datasets into a single Shiny web app
+6. Ability to include multiple single-cell datasets into a single Shiny web app
 
-- It is easy to use and customise aethetsics e.g. label names and colour 
-  palettes. In the simplest form, ShinyCell can convert an input single-cell 
-  data into a Shiny app with five lines of code 
-  (see [Quick Start Guide](#quick-start-guide))
+7. It is easy to use and customise aethetsics e.g. label names and colour 
+   palettes. In the simplest form, ShinyCell can convert an input single-cell 
+   data into a Shiny app with five lines of code 
+   (see [Quick Start Guide](#quick-start-guide))
 
+We also compared ShinyCell with nine other popular scRNA-seq visualisation 
+tools, which further highlights the key features of `ShinyCell`. For a more 
+detailed description, see the 
+[Supplementary Information](docs/OuyangEtAl_Shinycell_SuppInfo.pdf).
+
+![](images/comparison.png)
+
+
+
+# Table of Contents and Additional Tutorials
 This readme is broken down into the following sections:
 
 - [Installation](#installation) on how to install `ShinyCell`
