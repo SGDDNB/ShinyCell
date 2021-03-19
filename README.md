@@ -11,6 +11,12 @@ Examples of ShinyCell-generated shiny apps for single and multi datasets can
 be found at http://shinycell1.ddnetbio.com and http://shinycell2.ddnetbio.com 
 respectively.
 
+If you are using `ShinyCell`, please cite [Ouyang et al. ShinyCell: Simple and 
+sharable visualisation of single-cell gene expression data. bioRxiv 
+doi:10.1101/2020.10.25.354100](
+https://www.biorxiv.org/content/10.1101/2020.10.25.354100v1). The manuscript 
+is currently under review and we will update the citation accordingly.
+
 Key features of `ShinyCell` include: 
 
 1. Written in R and uses the Shiny package, allowing for easy sharing on online 
