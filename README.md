@@ -12,10 +12,10 @@ be found at http://shinycell1.ddnetbio.com and http://shinycell2.ddnetbio.com
 respectively.
 
 If you are using `ShinyCell`, please cite [Ouyang et al. ShinyCell: Simple and 
-sharable visualisation of single-cell gene expression data. bioRxiv 
-doi:10.1101/2020.10.25.354100](
-https://www.biorxiv.org/content/10.1101/2020.10.25.354100v1). The manuscript 
-is currently under review and we will update the citation accordingly.
+sharable visualisation of single-cell gene expression data. Bioinformatics, 
+doi:10.1093/bioinformatics/btab209](
+http://dx.doi.org/10.1093/bioinformatics/btab209). The manuscript 
+is recently accepted and we will update the full citation when it is available.
 
 Key features of `ShinyCell` include: 
 
