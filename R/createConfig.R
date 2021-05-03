@@ -46,8 +46,8 @@ createConfig <- function(obj, meta.to.include = NA, legendCols = 4,
     
   } else if (class(obj)[1] == "SingleCellExperiment"){
     # SCE Object
-    objMeta = obj@colData
-    if(length(names(obj@reducedDims)) == 0){drExist = FALSE}
+    objMeta = SingleCellExperiment::colData(obj)
+    if(length(SingleCellExperiment::reducedDimNames(sce)) == 0){drExist=FALSE}
     
   } else if (tolower(tools::file_ext(obj)) == "h5ad"){
     # h5ad file

@@ -44,7 +44,7 @@ makeMetaCategorical <- function(scConf, meta.to.input, obj, maxLevels = 50){
     
   } else if (class(obj)[1] == "SingleCellExperiment"){
     # SCE Object
-    objMeta = obj@colData
+    objMeta = SingleCellExperiment::colData(obj)
     
   } else if (tolower(tools::file_ext(obj)) == "h5ad"){
     # h5ad file

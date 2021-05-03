@@ -89,8 +89,9 @@ makeShinyFiles <- function(
     gex.rownm = rownames(SummarizedExperiment::assay(obj, gex.assay[1]))
     gex.colnm = colnames(SummarizedExperiment::assay(obj, gex.assay[1]))
     defGenes = gex.rownm[1:10]
-    sc1meta = data.table(sampleID = rownames(obj@colData), 
-                         as.data.frame(obj@colData))
+    sc1meta = SingleCellExperiment::colData(obj)
+    sc1meta = data.table(sampleID = rownames(sc1meta), 
+                         as.data.frame(sc1meta))
     
   } else if (tolower(tools::file_ext(obj)) == "h5ad"){
     # h5ad file
@@ -231,8 +232,8 @@ makeShinyFiles <- function(
     
   } else if (class(obj)[1] == "SingleCellExperiment"){
     # SCE Object
-    for(iDR in names(obj@reducedDims)){
-      drMat = obj@reducedDims[[iDR]]
+    for(iDR in SingleCellExperiment::reducedDimNames(obj)){
+      drMat = SingleCellExperiment::reducedDim(obj, iDR)
       if(ncol(drMat) > 5){drMat = drMat[, 1:5]}  # Take first 5 components only
       drMat = drMat[sc1meta$sampleID, ]          # Ensure ordering
       drMat = as.data.table(drMat)
