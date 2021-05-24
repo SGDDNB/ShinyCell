@@ -235,6 +235,9 @@ makeShinyFiles <- function(
     for(iDR in SingleCellExperiment::reducedDimNames(obj)){
       drMat = SingleCellExperiment::reducedDim(obj, iDR)
       if(ncol(drMat) > 5){drMat = drMat[, 1:5]}  # Take first 5 components only
+      if(is.null(colnames(drMat))){
+        colnames(drMat) = paste0(iDR, seq(ncol(drMat)))
+      }
       drMat = drMat[sc1meta$sampleID, ]          # Ensure ordering
       drMat = as.data.table(drMat)
       sc1meta = cbind(sc1meta, drMat)            
