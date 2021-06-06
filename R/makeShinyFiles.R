@@ -84,6 +84,9 @@ makeShinyFiles <- function(
     
   } else if (class(obj)[1] == "SingleCellExperiment"){
     # SCE Object
+    if(is.null(colnames(obj)[1])){
+      colnames(obj) = paste0("cell_", seq(ncol(obj)))
+    }    # Populate cell IDs if they are not present
     if(is.na(gex.assay[1])){gex.assay = "logcounts"}
     gex.matdim = dim(SummarizedExperiment::assay(obj, gex.assay[1]))
     gex.rownm = rownames(SummarizedExperiment::assay(obj, gex.assay[1]))
