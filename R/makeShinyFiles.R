@@ -367,6 +367,8 @@ makeShinyFiles <- function(
   sc1gene = seq(gex.matdim[1])
   names(gene.mapping) = NULL
   names(sc1gene) = gene.mapping
+  sc1gene = sc1gene[order(names(sc1gene))]
+  sc1gene = sc1gene[order(nchar(names(sc1gene)))]
   
   # Make XXXdef.rds (list of defaults)
   if(all(default.dimred %in% sc1conf[dimred == TRUE]$ID)){
