@@ -10,6 +10,8 @@ makeShinyCodesMulti(
   shiny.prefix,
   shiny.headers,
   shiny.dir,
+  enableSubset = TRUE,
+  defPtSiz = 1.25,
   ganalytics = NA
 )
 }
@@ -27,6 +29,14 @@ prefix used in \code{makeShinyFiles}}
 must match that of \code{shiny.prefix}}
 
 \item{shiny.dir}{specify directory to create the shiny app in}
+
+\item{enableSubset}{specify whether to enable "Toggle to subset cells" 
+functionality in the shiny app. Default is to enable this functionality}
+
+\item{defPtSiz}{specify default point size for single cells. For example, a 
+smaller size can be used if you have many cells in your dataset. A single 
+value can be specified to set the point size for all datasets. Otherwise,
+users have to specify one value for each dataset}
 
 \item{ganalytics}{Google analytics tracking ID (e.g. "UA-123456789-0")}
 }
@@ -53,7 +63,7 @@ citation = list(
   doi     = "10.1038/s41586-020-2734-6",
   link    = "https://www.nature.com/articles/s41586-020-2734-6")
 makeShinyCodes(shiny.title = "scRNA-seq shiny app", shiny.footnotes = "",
-               shiny.prefix = c("sc1", "sc2"), 
+               shiny.prefix = c("sc1", "sc2"), defPtSiz = c(1.25, 1.5),
                shiny.headers = c("dataset1", "dataset2"),
                shiny.dir = "shinyApp/")
                

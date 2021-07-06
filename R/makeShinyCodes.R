@@ -13,6 +13,10 @@
 #'   page, year, doi, link. See example below. 
 #' @param shiny.prefix specify file prefix 
 #' @param shiny.dir specify directory to create the shiny app in
+#' @param enableSubset specify whether to enable "Toggle to subset cells" 
+#'   functionality in the shiny app. Default is to enable this functionality
+#' @param defPtSiz specify default point size for single cells. For example, a 
+#'   smaller size can be used if you have many cells in your dataset
 #' @param ganalytics Google analytics tracking ID (e.g. "UA-123456789-0")
 #'
 #' @return server.R and ui.R required for shiny app
@@ -37,7 +41,13 @@
 #'
 #' @export
 makeShinyCodes <- function(shiny.title, shiny.footnotes,
-                           shiny.prefix, shiny.dir, ganalytics = NA){
+                           shiny.prefix, shiny.dir, 
+                           enableSubset = TRUE, defPtSiz = 1.25,
+                           ganalytics = NA){
+  subst = "#"
+  if(enableSubset){subst = ""}
+  defPtSiz = as.character(defPtSiz)
+  
   if(packageVersion("readr") >= "1.4.0"){
     ### Write code for server.R
     fname = paste0(shiny.dir, "/server.R")
@@ -46,7 +56,7 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
         "ggrepel","hdf5r","ggdendro","gridExtra")), file = fname)
     readr::write_file(wrSVload(shiny.prefix), append = TRUE, file = fname)
     readr::write_file(wrSVfix(), append = TRUE, file = fname)
-    readr::write_file(wrSVmain(shiny.prefix), append = TRUE, file = fname)
+    readr::write_file(wrSVmain(shiny.prefix, subst), append = TRUE, file = fname)
     readr::write_file(wrSVend(), append = TRUE, file = fname)
     
     
@@ -56,7 +66,7 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
       c("shiny","shinyhelper","data.table","Matrix","DT","magrittr")), file = fname)
     readr::write_file(wrUIload(shiny.prefix), append = TRUE, file = fname)
     readr::write_file(wrUIsingle(shiny.title, ganalytics), append = TRUE, file = fname)
-    readr::write_file(wrUImain(shiny.prefix), append = TRUE, file = fname)
+    readr::write_file(wrUImain(shiny.prefix, subst, defPtSiz), append = TRUE, file = fname)
     readr::write_file(glue::glue(', \n'), append = TRUE, file = fname)
     readr::write_file(wrUIend(shiny.footnotes), append = TRUE, file = fname)
     
@@ -75,7 +85,7 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
         "ggrepel","hdf5r","ggdendro","gridExtra")), path = fname)
     readr::write_file(wrSVload(shiny.prefix), append = TRUE, path = fname)
     readr::write_file(wrSVfix(), append = TRUE, path = fname)
-    readr::write_file(wrSVmain(shiny.prefix), append = TRUE, path = fname)
+    readr::write_file(wrSVmain(shiny.prefix, subst), append = TRUE, path = fname)
     readr::write_file(wrSVend(), append = TRUE, path = fname)
     
     
@@ -85,7 +95,7 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
       c("shiny","shinyhelper","data.table","Matrix","DT","magrittr")), path = fname)
     readr::write_file(wrUIload(shiny.prefix), append = TRUE, path = fname)
     readr::write_file(wrUIsingle(shiny.title, ganalytics), append = TRUE, path = fname)
-    readr::write_file(wrUImain(shiny.prefix), append = TRUE, path = fname)
+    readr::write_file(wrUImain(shiny.prefix, subst, defPtSiz), append = TRUE, path = fname)
     readr::write_file(glue::glue(', \n'), append = TRUE, path = fname)
     readr::write_file(wrUIend(shiny.footnotes), append = TRUE, path = fname)
     

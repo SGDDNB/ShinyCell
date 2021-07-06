@@ -9,6 +9,8 @@ makeShinyCodes(
   shiny.footnotes,
   shiny.prefix,
   shiny.dir,
+  enableSubset = TRUE,
+  defPtSiz = 1.25,
   ganalytics = NA
 )
 }
@@ -22,6 +24,12 @@ page, year, doi, link. See example below.}
 \item{shiny.prefix}{specify file prefix}
 
 \item{shiny.dir}{specify directory to create the shiny app in}
+
+\item{enableSubset}{specify whether to enable "Toggle to subset cells" 
+functionality in the shiny app. Default is to enable this functionality}
+
+\item{defPtSiz}{specify default point size for single cells. For example, a 
+smaller size can be used if you have many cells in your dataset}
 
 \item{ganalytics}{Google analytics tracking ID (e.g. "UA-123456789-0")}
 }

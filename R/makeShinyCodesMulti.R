@@ -16,6 +16,12 @@
 #' @param shiny.headers specify the tab header names for each dataset. Length 
 #'   must match that of \code{shiny.prefix}
 #' @param shiny.dir specify directory to create the shiny app in
+#' @param enableSubset specify whether to enable "Toggle to subset cells" 
+#'   functionality in the shiny app. Default is to enable this functionality
+#' @param defPtSiz specify default point size for single cells. For example, a 
+#'   smaller size can be used if you have many cells in your dataset. A single 
+#'   value can be specified to set the point size for all datasets. Otherwise,
+#'   users have to specify one value for each dataset
 #' @param ganalytics Google analytics tracking ID (e.g. "UA-123456789-0")
 #'
 #' @return server.R and ui.R required for shiny app
@@ -36,18 +42,25 @@
 #'   doi     = "10.1038/s41586-020-2734-6",
 #'   link    = "https://www.nature.com/articles/s41586-020-2734-6")
 #' makeShinyCodes(shiny.title = "scRNA-seq shiny app", shiny.footnotes = "",
-#'                shiny.prefix = c("sc1", "sc2"), 
+#'                shiny.prefix = c("sc1", "sc2"), defPtSiz = c(1.25, 1.5),
 #'                shiny.headers = c("dataset1", "dataset2"),
 #'                shiny.dir = "shinyApp/")
 #'                
 #' @export
 makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
                                 shiny.prefix, shiny.headers, shiny.dir, 
+                                enableSubset = TRUE, defPtSiz = 1.25,
                                 ganalytics = NA){
   ### Checks
   if(length(shiny.prefix) != length(shiny.headers)){
     stop("length of shiny.prefix and shiny.headers does not match!")
   }
+  subst = "#"
+  if(enableSubset){subst = ""}
+  if(length(shiny.prefix) != length(defPtSiz)){
+    defPtSiz = rep(defPtSiz[1], length(shiny.prefix))
+  }
+  defPtSiz = as.character(defPtSiz)
   
   if(packageVersion("readr") >= "1.4.0"){
     ### Write code for server.R
@@ -60,7 +73,7 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
     }
     readr::write_file(wrSVfix(), append = TRUE, file = fname)
     for(i in shiny.prefix){
-      readr::write_file(wrSVmain(i), append = TRUE, file = fname)
+      readr::write_file(wrSVmain(i, subst), append = TRUE, file = fname)
     }
     readr::write_file(wrSVend(), append = TRUE, file = fname)
     
@@ -77,7 +90,8 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
       hhh = shiny.headers[i]
       readr::write_file(glue::glue('navbarMenu("{hhh}",'), 
                         append = TRUE, file = fname)
-      readr::write_file(wrUImain(shiny.prefix[i]), append = TRUE, file = fname)
+      readr::write_file(wrUImain(shiny.prefix[i], subst, defPtSiz[i]), 
+                        append = TRUE, file = fname)
       readr::write_file(glue::glue('), \n\n\n'), append = TRUE, file = fname)
     }
     readr::write_file(wrUIend(shiny.footnotes), append = TRUE, file = fname)
@@ -100,7 +114,7 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
     }
     readr::write_file(wrSVfix(), append = TRUE, path = fname)
     for(i in shiny.prefix){
-      readr::write_file(wrSVmain(i), append = TRUE, path = fname)
+      readr::write_file(wrSVmain(i, subst), append = TRUE, path = fname)
     }
     readr::write_file(wrSVend(), append = TRUE, path = fname)
     
@@ -117,7 +131,8 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
       hhh = shiny.headers[i]
       readr::write_file(glue::glue('navbarMenu("{hhh}",'), 
                         append = TRUE, path = fname)
-      readr::write_file(wrUImain(shiny.prefix[i]), append = TRUE, path = fname)
+      readr::write_file(wrUImain(shiny.prefix[i], subst, defPtSiz[i]), 
+                        append = TRUE, path = fname)
       readr::write_file(glue::glue('), \n\n\n'), append = TRUE, path = fname)
     }
     readr::write_file(wrUIend(shiny.footnotes), append = TRUE, path = fname)

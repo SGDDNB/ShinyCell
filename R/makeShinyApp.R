@@ -33,6 +33,10 @@
 #'   page, year, doi, link. See example below. 
 #' @param shiny.dir specify directory to create the shiny app in. Default is 
 #'   to create a new directory named "shinyApp"
+#' @param enableSubset specify whether to enable "Toggle to subset cells" 
+#'   functionality in the shiny app. Default is to enable this functionality
+#' @param defPtSiz specify default point size for single cells. For example, a 
+#'   smaller size can be used if you have many cells in your dataset
 #' @param ganalytics Google analytics tracking ID (e.g. "UA-123456789-0")
 #' @param default.gene1 specify primary default gene to show
 #' @param default.gene2 specify secondary default gene to show
@@ -71,7 +75,7 @@ makeShinyApp <- function(
   obj, scConf, gex.assay = NA, gex.slot = c("data", "scale.data", "counts"), 
   gene.mapping = FALSE, 
   shiny.title = "scRNA-seq shiny app", shiny.footnotes = "",
-  shiny.dir = "shinyApp/", ganalytics = NA,
+  shiny.dir = "shinyApp/", enableSubset = TRUE, defPtSiz = 1.25, ganalytics=NA,
   default.gene1 = NA, default.gene2 = NA, default.multigene = NA, 
   default.dimred = NA){
   
@@ -84,6 +88,7 @@ makeShinyApp <- function(
                  default.gene1, default.gene2, default.multigene, default.dimred)
   makeShinyCodes(shiny.title = shiny.title, shiny.footnotes = shiny.footnotes,
                  shiny.prefix = "sc1", shiny.dir = shiny.dir, 
+                 enableSubset = enableSubset, defPtSiz = defPtSiz,
                  ganalytics = ganalytics)
 
 }

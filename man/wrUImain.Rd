@@ -4,7 +4,7 @@
 \alias{wrUImain}
 \title{Write code for main block of ui.R}
 \usage{
-wrUImain(prefix)
+wrUImain(prefix, subst = "", ptsiz = "1.25")
 }
 \arguments{
 \item{prefix}{file prefix}
