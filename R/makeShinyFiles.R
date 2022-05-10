@@ -304,6 +304,9 @@ makeShinyFiles <- function(
     space = H5S$new("simple", dims = gex.matdim, maxdims = gex.matdim),
     chunk_dims = c(1,gex.matdim[2]))
   chk = chunkSize
+  while(chk > (gex.matdim[1]-8)){
+    chk = floor(chk / 2)     # Account for cases where nGene < chunkSize
+  } 
   if(class(obj)[1] == "Seurat"){
     # Seurat Object
     for(i in 1:floor((gex.matdim[1]-8)/chk)){
