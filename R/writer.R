@@ -560,6 +560,7 @@ wrSVfix <- function() {
 			'   }}\n',
 			'   ggMat = as.matrix(ggMat[, -1]) \n',
 			'   rownames(ggMat) = tmp \n',
+			'               ggMat[is.na(ggMat)] <- 0 #Paul Added \n',
 			'   if(inpRow){{ \n',
 			'     hcRow = dendro_data(as.dendrogram(hclust(dist(ggMat)))) \n',
 			'     ggRow = ggplot() + coord_flip() + \n',
