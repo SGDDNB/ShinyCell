@@ -550,7 +550,7 @@ wrSVfix <- function() {
 			'     ggData[, val:= scale(val), keyby = "geneName"] \n',
 			'     colRange = c(-max(abs(range(ggData$val))), max(abs(range(ggData$val)))) \n',
 			'   }} \n',
-			'  if(inpScl == "Fold change"){{ \n'
+			'  if(inpScl == "Fold change"){{ \n',
 			'     ggData[, val:= scale(val,T,F), keyby = "geneName"] \n',
 			'     colRange = c(-max(abs(range(ggData$val))), max(abs(range(ggData$val)))) \n',
 			'   }} \n',
