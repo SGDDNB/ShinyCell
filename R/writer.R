@@ -2016,7 +2016,7 @@ wrUImain <- function(prefix, subst = "", ptsiz = "1.25") {
              '        radioButtons("{prefix}d1plt", "Plot type:", \n',
              '                     choices = c("Bubbleplot", "Heatmap"), \n',
              '                     selected = "Bubbleplot", inline = TRUE), \n',
-             '        checkboxInput("{prefix}d1scl", "Scale gene expression", value = TRUE), \n',
+             '        radioButtons("{prefix}d1scl", "Scale gene expression", 	choices=c("Expression","Z-score","Fold change"), selected = "Expression", inline=TRUE), \n',
              '        checkboxInput("{prefix}d1row", "Cluster rows (genes)", value = TRUE), \n',
              '        checkboxInput("{prefix}d1col", "Cluster columns (samples)", value = FALSE), \n',
              '        br(), \n',
