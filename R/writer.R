@@ -20,11 +20,68 @@ wrLib <- function(lib) {
 #' @rdname wrSVload
 #' @export wrSVload
 #'
-wrSVload <- function(prefix) {
+wrSVload <- function(prefix, markers.all, markers.top20, de.genes) {
   glue::glue('{prefix}conf = readRDS("{prefix}conf.rds")\n',
              '{prefix}def  = readRDS("{prefix}def.rds")\n',
              '{prefix}gene = readRDS("{prefix}gene.rds")\n',
              '{prefix}meta = readRDS("{prefix}meta.rds")\n',
+             #TODO: use sc1conf$extra_tabs and get rid of passing those arguments every time?
+
+             #'markers.all = {markers.all}\n',
+             #'markers.top20 = {markers.top20}\n',
+             #'de.genes = {de.genes}\n',
+             #'if(markers.all==TRUE) {{\n',
+             #'  {prefix}m_all = readRDS("{prefix}m_all.rds")\n',
+             #'}}\n',
+             #'if(markers.top20==TRUE) {{\n',
+             #'  {prefix}m_t20 = readRDS("{prefix}m_t20.rds")\n',
+             #'}}\n',
+             #'if(de.genes==TRUE) {{\n',
+             #'  {prefix}de_genes = readRDS("{prefix}de_genes.rds")\n',
+             #'}}\n',
+
+             #TODO: set up a system where if something is initially flagged TRUE by the user.
+             # but the data isn't in seurat object or corresponding file is not found for
+             # whatever reason, make the page anyway and have it print out a corresponding
+             # error message to the user.  so: make it to so that makeShinyFiles.R doesn't
+             # change the TRUE flags in sc1config$extra_tabs, these lines here check if the
+             # corresponding files exist, if they don't then a message gets printed in the
+             # webpage they were wanting to make.
+             
+             'if({prefix}conf$extra_tabs[1]==TRUE) {{\n',
+             '  if(file.exists(paste0(getwd(), "/{prefix}m_all.rds"))) {{\n',
+             '    {prefix}m_all = readRDS("{prefix}m_all.rds")\n',
+             '  }}\n',
+             '  else {{\n',
+             '    {prefix}m_all = FALSE\n',
+             '  }}\n',
+             '}}\n',
+             'if({prefix}conf$extra_tabs[2]==TRUE) {{\n',
+             '  if(file.exists(paste0(getwd(), "/{prefix}m_t20.rds"))) {{\n',
+             '    {prefix}m_t20 = readRDS("{prefix}m_t20.rds")\n',
+             '  }}\n',
+             '  else {{\n',
+             '    {prefix}m_t20 = FALSE\n',
+             '  }}\n',
+             '}}\n',
+             'if({prefix}conf$extra_tabs[3]==TRUE) {{\n',
+             '  if(file.exists(paste0(getwd(), "/{prefix}de_genes.rds"))) {{\n',
+             '    {prefix}de_genes = readRDS("{prefix}de_genes.rds")\n',
+             '  }}\n',
+             '  else {{\n',
+             '    {prefix}de_genes = FALSE\n',
+             '  }}\n',
+             '}}\n',
+             'if({prefix}conf$extra_tabs[4]==TRUE) {{\n',
+             '  if(file.exists(paste0(getwd(), "/{prefix}gene_ranks.rds"))) {{\n',
+             '    {prefix}gene_ranks = readRDS("{prefix}gene_ranks.rds")\n',
+             '  }}\n',
+             '  else {{\n',
+             '    {prefix}gene_ranks = FALSE\n',
+             '  }}\n',
+             '}}\n',
+             #'if({prefix}conf$extra_tabs[4]==TRUE) {{\n',
+             #'  {prefix}gene_ranks = \n',
              '\n\n\n\n')
 }
 
@@ -1150,9 +1207,81 @@ wrSVmain <- function(prefix, subst = "") {
              '                        input${prefix}d1scl, input${prefix}d1row, input${prefix}d1col, \n',
              '                        input${prefix}d1cols, input${prefix}d1fsz, save = TRUE) ) \n',
              '  }}) \n',
-             '   \n',
-             '   \n',
-             '   \n')
+             '  \n',
+             '  \n',
+             #'  #### NEW SERVER FUNC ####\n',
+             #'  output${prefix}m_all <- DT::renderDataTable( \n',
+             #'    {prefix}m_all \n',
+             #'  ) \n',
+             #'  output${prefix}m_t20 <- DT::renderDataTable( \n',
+             #'    {prefix}m_t20 \n',
+             #'  )\n',
+             #'  output${prefix}de.genes <- DT::renderDataTable( \n',
+             #'    {prefix}de.genes \n',
+             #'  ) \n',
+             #'   \n',
+             #'   \n',
+             '  \n')
+}
+
+#' Insert data server cues for marker and DE genes data tables
+#'
+#' @rdname wrSVmarkersDE
+#' @export wrSVmarkersDE
+#'
+wrSVmarkersDE <- function(prefix, markers.all, markers.top20, de.genes) {
+  graphs <- ''
+  if(markers.all == TRUE) {
+    graphs <- graphs + glue::glue(
+             '  output${prefix}m_all <- DT::renderDataTable( \n',
+             '    {prefix}m_all \n',
+             '  ) \n',
+             '\n',
+             '\n',
+             .trim=FALSE
+    )
+  }
+
+  if(markers.top20 == TRUE) {
+    graphs <- graphs + glue::glue(
+             '    output${prefix}m_t20 <- DT::renderDataTable( \n',
+             '      {prefix}m_t20 \n',
+             '    ) \n',
+             '    \n',
+             '    \n',
+             .trim=FALSE
+    )
+  }
+
+  if(de.genes == TRUE) {
+    graphs <- graphs + glue::glue(
+            '     output${prefix}de_genes <- DT::renderDataTable( \n',
+            '       {prefix}de_genes \n',
+            '     ) \n',
+            '     \n',
+            '     \n',
+            .trim=FALSE
+    )
+  }
+
+  return(graphs)
+}
+
+#' Insert data server cues for gene signature manipulate via AUCell
+#'
+#' @rdname wrSVgeneSig
+#' @export wrSVgeneSig
+#'
+# incorporate within previous function?
+wrSVgeneSig <- function(prefix, gene.ranks) {
+  graphs = ''
+  if(gene.ranks == TRUE ) {
+    graphs <- graphs + glue::glue(
+            ' \n',
+            .trim=FALSE
+    )
+  }
+  return(graphs)
 }
 
 #' Write code for final portion of server.R
@@ -1937,8 +2066,146 @@ wrUImain <- function(prefix, subst = "", ptsiz = "1.25") {
              '                              min = 4, max = 20, value = 10, step = 0.5)) \n',
              '      )  # End of column (6 space) \n',
              '    )    # End of fluidRow (4 space) \n',
-             '  )      # End of tab (2 space) \n',
-             '   \n')
+             '  )      # End of tab (2 space) \n',             
+             #'  ### ???? \n',
+             #'  tabPanel( \n',
+             #'    HTML("Markers Seurat Cluster, All"), \n',
+             #'    h4("This page is meant to display associations between genetic markers and Seurat data clusters through an embedded spreadsheet."), \n',
+             #'    br(),br(), \n',
+             #'    fluidRow( \n',
+             #'      fluidRow( \n',
+             #'        DT::dataTableOutput("{prefix}m_all") \n',
+             #'      ) \n',
+             #'    ) \n',
+             #'  ),      # End of tab (2 space) \n',
+             #'\n',
+             #'  ### ????  \n',
+             #'  tabPanel( \n',
+             #'    HTML("Markers Seurat Cluster, Top 20"), \n',
+             #'    h4("This page is meant to display associations between the top 20 genetic markers and Seurat data clusters through an embedded spreadsheet."), \n',
+             #'    br(),br(), \n',
+             #'    fluidRow( \n',
+             #'      fluidRow( \n',
+             #'        DT::dataTableOutput("{prefix}m_t20") \n',
+             #'      ) \n',
+             #'    ) \n',
+             #'  ),      # End of tab (2 space) \n',
+             #'\n',
+             #'  ### ???  \n',
+             #'  tabPanel( \n',
+             #'    HTML("Markers Cell Type, All"), \n',
+             #'    h4("This page is meant to display associations between genetic markers and cell types tagged to their Seurat data cluster."), \n',
+             #'    br(),br(), \n',
+             #'    fluidRow( \n',
+             #'      fluidRow( \n',
+             #'        DT::dataTableOutput("{prefix}de_genes") \n',
+             #'      )\n',
+             #'    ) \n',
+             #'  ) \n',
+             '  \n')
+}
+
+#' Append markers and DE tabs to main block of ui.R
+#'
+#' @rdname wrUImarkersDE
+#' @export wrUImarkersDE
+#'
+
+wrUImarkersDE <- function(prefix, markers.all, markers.top20, de.genes) {
+  graphs <- '  '
+  if(markers.all == TRUE) {
+    graphs <- graphs + glue::glue(
+        '  , \n',
+        '  ### ???? \n',
+        '  tabPanel( \n',
+        '    HTML("Markers Seurat Cluster, All"), \n',
+        '    h4("This page is meant to display associations between genetic markers and Seurat data clusters through an embedded spreadsheet."), \n',
+        '    br(),br(), \n',
+        '    fluidRow( \n',
+        '      column(12, \n',
+        '        DT::dataTableOutput("{prefix}m_all") \n',
+        '      ) \n',
+        '    ) \n',
+        '  ) \n',
+        '  \n',
+        .trim = FALSE
+      )
+  }
+  if(markers.top20 == TRUE) {
+    graphs <- graphs + glue::glue(
+        '  , \n',
+        '  ### ????  \n',
+        '  tabPanel( \n',
+        '    HTML("Markers Seurat Cluster, Top 20"), \n',
+        '    h4("This page is meant to display associations between the top 20 genetic markers and Seurat data clusters through an embedded spreadsheet."), \n',
+        '    br(),br(), \n',
+        '    fluidRow( \n',
+        '      column(12, \n',
+        '        DT::dataTableOutput("{prefix}m_t20") \n',
+        '      ) \n',
+        '    ) \n',
+        '  ) \n',
+        '  \n',
+        .trim = FALSE
+      )
+  }
+  if(de.genes == TRUE) {
+    graphs <- graphs + glue::glue(
+        '  , \n',
+        '  ### ???  \n',
+        '  tabPanel( \n',
+        '    HTML("Markers Cell Type, All"), \n',
+        '    h4("This page is meant to display associations between genetic markers and cell types tagged to their Seurat data cluster."), \n',
+        '    br(),br(), \n',
+        '    fluidRow( \n',
+        '      column(12, \n',
+        '        DT::dataTableOutput("{prefix}de_genes") \n',
+        '      ) \n',
+        '    ) \n',
+        '  ) \n',
+        '  \n',
+        .trim = FALSE
+      )
+  }
+  return(graphs)
+}
+
+#' Append gene signature page to ui.R
+#'
+#' @rdname wrUIgeneSig
+#' @export wrUIgeneSig
+#'
+
+wrUIgeneSig <- function(prefix, gene.ranks) {
+  graphs <- ''
+  if(gene.ranks == TRUE) {
+    graphs <- graphs + glue::glue(
+      '  ,\n',
+      '  ### ??? \n',
+      '  tabPanel( \n',
+      '    HTML("Gene signature"), \n',
+      '    h4("text"), \n',
+      '    br(),br(), \n',
+      '    fluidRow( \n',
+      '      column(3, style="border-right: 2px solid black", \n',
+      '        textAreaInput("gsig_list", "List of genes", value="gene1\\ngene2\\ngene3"), \n', #func to get correct genes
+      '        selectInput("gsig_group", "Group by:", choices=c("Test" = "test")), \n', #func to get correct groups
+      '        actionButton("gsig_generate_plot", "Generate / Update plot", class = "btn-success"), \n',
+      '        br(),br(), \n',
+      '        actionButton("gsig_subset_toggle", "Toggle to subset cells"), \n', #what kind of / how to get subsets? should be range of whatever group youre trying to subset
+      '        conditionalPanel("input.gsig_subset_toggle % 2 == 1", \n',
+      '                         selectInput("gsig_subset", "Cell information to subset:", choices=c("Test" = "test")) \n', #func to get correct groups
+      '                         ), \n',
+      '        br(),br(), \n',
+      '        actionButton("gsig_graphics_toggle", "Toggle graphics controls") \n', #what kind of / how to get graphics controls? 
+      '      ) \n',
+      '    ) \n',
+      '  ) \n',
+      '  \n',
+      .trim = FALSE
+    )
+  }
+  return(graphs)
 }
 
 #' Write code for final portion of ui.R

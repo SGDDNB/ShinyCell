@@ -43,7 +43,7 @@
 makeShinyCodes <- function(shiny.title, shiny.footnotes,
                            shiny.prefix, shiny.dir, 
                            enableSubset = TRUE, defPtSiz = 1.25,
-                           ganalytics = NA){
+                           ganalytics = NA, markers.all = FALSE, markers.top20 = FALSE, de.genes = FALSE, gene.ranks=FALSE){
   subst = "#"
   if(enableSubset){subst = ""}
   defPtSiz = as.character(defPtSiz)
@@ -53,10 +53,12 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
     fname = paste0(shiny.dir, "/server.R")
     readr::write_file(wrLib(
       c("shiny","shinyhelper","data.table","Matrix","DT","magrittr","ggplot2",
-        "ggrepel","hdf5r","ggdendro","gridExtra")), file = fname)
-    readr::write_file(wrSVload(shiny.prefix), append = TRUE, file = fname)
-    readr::write_file(wrSVfix(), append = TRUE, file = fname)
+        "ggrepel","hdf5r","ggdendro","gridExtra","AUCell","rbokeh")), file = fname)
+    readr::write_file(wrSVload(shiny.prefix, markers.all, markers.top20, de.genes), append = TRUE, file = fname)
+    readr::write_file(wrSVfix(), append = TRUE, path = fname)
     readr::write_file(wrSVmain(shiny.prefix, subst), append = TRUE, file = fname)
+    readr::write_file(wrSVmarkersDE(shiny.prefix, markers.all, markers.top20, de.genes), append = TRUE, file = fname)
+    readr::write_file(wrSVgeneSig(shiny.prefix, gene.ranks), append = TRUE, file = fname)
     readr::write_file(wrSVend(), append = TRUE, file = fname)
     
     
@@ -67,6 +69,8 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
     readr::write_file(wrUIload(shiny.prefix), append = TRUE, file = fname)
     readr::write_file(wrUIsingle(shiny.title, ganalytics), append = TRUE, file = fname)
     readr::write_file(wrUImain(shiny.prefix, subst, defPtSiz), append = TRUE, file = fname)
+    readr::write_file(wrUImarkersDE(shiny.prefix, markers.all, markers.top20, de.genes), append = TRUE, file = fname)
+    readr::write_file(wrUIgeneSig(shiny.prefix, gene.ranks), append = TRUE, file = fname)
     readr::write_file(glue::glue(', \n'), append = TRUE, file = fname)
     readr::write_file(wrUIend(shiny.footnotes), append = TRUE, file = fname)
     
@@ -82,10 +86,12 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
     fname = paste0(shiny.dir, "/server.R")
     readr::write_file(wrLib(
       c("shiny","shinyhelper","data.table","Matrix","DT","magrittr","ggplot2",
-        "ggrepel","hdf5r","ggdendro","gridExtra")), path = fname)
-    readr::write_file(wrSVload(shiny.prefix), append = TRUE, path = fname)
+        "ggrepel","hdf5r","ggdendro","gridExtra","AUCell","rbokeh")), path = fname)
+    readr::write_file(wrSVload(shiny.prefix, markers.all, markers.top20, de.genes), append = TRUE, path = fname)
     readr::write_file(wrSVfix(), append = TRUE, path = fname)
     readr::write_file(wrSVmain(shiny.prefix, subst), append = TRUE, path = fname)
+    readr::write_file(wrSVmarkersDE(shiny.prefix, markers.all, markers.top20, de.genes), append = TRUE, path = fname)
+    readr::write_file(wrSVgeneSig(shiny.prefix, gene.ranks), append = TRUE, file = fname)
     readr::write_file(wrSVend(), append = TRUE, path = fname)
     
     
@@ -96,6 +102,8 @@ makeShinyCodes <- function(shiny.title, shiny.footnotes,
     readr::write_file(wrUIload(shiny.prefix), append = TRUE, path = fname)
     readr::write_file(wrUIsingle(shiny.title, ganalytics), append = TRUE, path = fname)
     readr::write_file(wrUImain(shiny.prefix, subst, defPtSiz), append = TRUE, path = fname)
+    readr::write_file(wrUImarkersDE(shiny.prefix, markers.all, markers.top20, de.genes), append = TRUE, path = fname)
+    readr::write_file(wrUIgeneSig(shiny.prefix, gene.ranks), append = TRUE, file = fname)
     readr::write_file(glue::glue(', \n'), append = TRUE, path = fname)
     readr::write_file(wrUIend(shiny.footnotes), append = TRUE, path = fname)
     
