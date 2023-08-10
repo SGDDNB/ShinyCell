@@ -100,7 +100,7 @@ Furthermore, on the system where the Shiny app will be deployed, users can run
 the following code to check if the packages required by the Shiny app exist 
 and install them if required:
 ``` r
-reqPkg = c("shiny", "shinyhelper", "data.table", "Matrix", "DT", "hdf5r", 
+reqPkg = c("shiny", "shinyhelper", "data.table", "Matrix", "DT", "hdf5r", "patchwork", "purrr",
            "reticulate", "ggplot2", "gridExtra", "magrittr", "ggdendro")
 newPkg = reqPkg[!(reqPkg %in% installed.packages()[,"Package"])]
 if(length(newPkg)){install.packages(newPkg)}
@@ -127,7 +127,7 @@ https://www.nature.com/articles/s41586-020-2734-6). The Seurat object can be
 [downloaded here](http://files.ddnetbio.com/hrpiFiles/readySeu_rset.rds).
 
 A shiny app can then be quickly generated using the following code:
- 
+
 ``` r
 library(Seurat)
 library(ShinyCell)
@@ -200,10 +200,10 @@ using hierarchical clustering.
        generate the required files. From experience, a typical laptop with 8GB 
        RAM can handle datasets around 30k cells while 16GB RAM machines can 
        handle around 60k-70k cells. 
-       
+  
 - Q: I have generated additional dimension reductions (e.g. force-directed 
-layout / MDS / monocle2 etc.) and would like to include them into the Shiny 
-app. How do I do that?
+  layout / MDS / monocle2 etc.) and would like to include them into the Shiny 
+  app. How do I do that?
   - A: `ShinyCell` automatically retrieves dimension reduction information from 
        the Seurat or SCE object. Thus, the additional dimension reductions 
        have to be added into the Seurat or SCE object before running `ShinyCell`. 
@@ -219,7 +219,7 @@ which gene expression assay to plot in the Shiny app?
        visualise both gene expression, they have to treat each assay as an 
        individual dataset and include multiple datasets into a single shiny 
        app, following the [Tutorial for creating a ShinyCell app containing several single-cell datasets](
-https://htmlpreview.github.io/?https://github.com/SGDDNB/ShinyCell/blob/master/docs/2multi.html)
+     https://htmlpreview.github.io/?https://github.com/SGDDNB/ShinyCell/blob/master/docs/2multi.html)
 
 
 
