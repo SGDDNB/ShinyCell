@@ -546,11 +546,14 @@ wrSVfix <- function() {
 			   
   			' # Scale if required \n',
   			' colRange = range(ggData$val) \n',
-			'   if(inpScl){{ \n',
+			'   if(inpScl == "Z-score"){{ \n',
 			'     ggData[, val:= scale(val), keyby = "geneName"] \n',
 			'     colRange = c(-max(abs(range(ggData$val))), max(abs(range(ggData$val)))) \n',
 			'   }} \n',
-   
+			'  if(inpScl == "Fold change"){{ \n',
+			'     ggData[, val:= scale(val,T,F), keyby = "geneName"] \n',
+			'     colRange = c(-max(abs(range(ggData$val))), max(abs(range(ggData$val)))) \n',
+			'   }} \n',
 			'   # hclust row/col if necessary \n',
 			'   ggMat = dcast.data.table(ggData, geneName~grpBy, value.var = "val") \n',
 			'   tmp = ggMat$geneName \n',
@@ -560,7 +563,7 @@ wrSVfix <- function() {
 			'   }}\n',
 			'   ggMat = as.matrix(ggMat[, -1]) \n',
 			'   rownames(ggMat) = tmp \n',
-			'               ggMat[is.na(ggMat)] <- 0 #Paul Added \n',
+			'	ggMat[is.na(ggMat)] <- 0 #Paul Added \n',
 			'   if(inpRow){{ \n',
 			'     hcRow = dendro_data(as.dendrogram(hclust(dist(ggMat)))) \n',
 			'     ggRow = ggplot() + coord_flip() + \n',
@@ -605,7 +608,7 @@ wrSVfix <- function() {
 			'       scale_y_discrete(expand = c(0, 0.5)) + \n',
 			'       scale_size_continuous("proportion", range = c(0, 8), \n',
 			'                             limits = c(0, 1), breaks = c(0.00,0.25,0.50,0.75,1.00)) + \n',
-			'       scale_color_gradientn("expression", limits = colRange, colours = cList[[inpcols]]) + \n',
+			'       scale_color_gradientn(inpScl, limits = colRange, colours = cList[[inpcols]]) + \n',
 			'       guides(color = guide_colorbar(barwidth = 15)) + \n',
 			'       theme(axis.title = element_blank(), legend.box = "vertical") \n',
 			'   }} else {{ \n',
@@ -619,7 +622,7 @@ wrSVfix <- function() {
 			'       sctheme(base_size = sList[inpfsz], Xang = 45, XjusH = 1) + \n',
 			'       scale_x_discrete(expand = c(0.05, 0)) +  \n',
 			'       scale_y_discrete(expand = c(0, 0.5)) + \n',
-			'       scale_fill_gradientn("expression", limits = colRange, colours = cList[[inpcols]]) + \n',
+			'       scale_fill_gradientn(inpScl, limits = colRange, colours = cList[[inpcols]]) + \n',
 			'       guides(fill = guide_colorbar(barwidth = 15)) + \n',
 			'       theme(axis.title = element_blank()) \n',
 			'   }} \n',
@@ -687,7 +690,9 @@ wrSVfix <- function() {
              'shinyServer(function(input, output, session) {{ \n',
              '  ### For all tags and Server-side selectize \n',
              '  observe_helpers() \n',
+			 'optCrt="{{ option_create: function(data,escape) {{return(\'<div class=\\"create\\"><strong>\' + \'</strong></div>\');}} }}" \n', #PY moved from wrSVmain
              ' \n')
+			 
 }
 
 #' Write code for main block of server.R
@@ -698,7 +703,7 @@ wrSVfix <- function() {
 #' @export wrSVmain
 #'
 wrSVmain <- function(prefix, subst = "") {
-  glue::glue('optCrt="{{ option_create: function(data,escape) {{return(\'<div class=\\"create\\"><strong>\' + \'</strong></div>\');}} }}" \n', 
+  glue::glue(#'optCrt="{{ option_create: function(data,escape) {{return(\'<div class=\\"create\\"><strong>\' + \'</strong></div>\');}} }}" \n', #PY moved to wrSVfix
              '  updateSelectizeInput(session, "{prefix}a1inp2", choices = names({prefix}gene), server = TRUE, \n',
              '                       selected = {prefix}def$gene1, options = list( \n',
              '                         maxOptions = 7, create = TRUE, persist = TRUE, render = I(optCrt))) \n',
@@ -1260,7 +1265,8 @@ wrSVmain <- function(prefix, subst = "") {
              '                        input${prefix}d2sub1, input${prefix}d2sub2, "{prefix}gexpr.h5", {prefix}gene,  \n',
              '                        input${prefix}d2scl, input${prefix}d2row, input${prefix}d2col,  \n',
              '                        input${prefix}d2cols, input${prefix}d2fsz, save = TRUE, splitBy=input${prefix}d2split) ) \n',
-               
+             
+			 
           
 			'  }}) \n',#close server function
              '   \n',
@@ -2010,7 +2016,7 @@ wrUImain <- function(prefix, subst = "", ptsiz = "1.25") {
              '        radioButtons("{prefix}d1plt", "Plot type:", \n',
              '                     choices = c("Bubbleplot", "Heatmap"), \n',
              '                     selected = "Bubbleplot", inline = TRUE), \n',
-             '        checkboxInput("{prefix}d1scl", "Scale gene expression", value = TRUE), \n',
+             '        radioButtons("{prefix}d1scl", "Scale gene expression", 	choices=c("Expression","Z-score","Fold change"), selected = "Expression", inline=TRUE), \n',
              '        checkboxInput("{prefix}d1row", "Cluster rows (genes)", value = TRUE), \n',
              '        checkboxInput("{prefix}d1col", "Cluster columns (samples)", value = FALSE), \n',
              '        br(), \n',
@@ -2102,7 +2108,7 @@ wrUImain <- function(prefix, subst = "", ptsiz = "1.25") {
 			'	        radioButtons("{prefix}d2plt", "Plot type:", \n',
 			'	                     choices = c("Bubbleplot", "Heatmap"), \n',
 			'	                     selected = "Bubbleplot", inline = TRUE), \n',
-			'	        checkboxInput("{prefix}d2scl", "Scale gene expression", value = TRUE), \n',
+			'	        radioButtons("{prefix}d2scl", "Scale gene expression",	choices=c("Expression","Z-score","Fold change"), selected = "Expression", inline=TRUE), \n',
 			'	        checkboxInput("{prefix}d2row", "Cluster rows (genes)", value = TRUE), \n',
 			'	        checkboxInput("{prefix}d2col", "Cluster columns (samples)", value = FALSE), \n',
 			'	        br(), \n',
