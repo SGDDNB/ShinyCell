@@ -94,7 +94,7 @@ navbarMenu("PLUGIN: Peaks",
 	                       choices = c("Yes", "No"), 
 	                       selected = "Yes", inline = TRUE),
 						   
-			    selectInput("cellPhoneDB_CellList.ui", "Cell information to subset:", 
+			    selectInput("cellPhoneDB_CellList", "Cell information to subset:", 
 	                      choices = {scrna}conf[grp == TRUE]$UI, 
 	                      selected = {scrna}def$grp1, width='100%'), 
 	            uiOutput("cellPhoneDB_CellList.ui"),  
