@@ -16,7 +16,7 @@ sharable visualisation of single-cell gene expression data. Bioinformatics,
 doi:10.1093/bioinformatics/btab209](
 http://dx.doi.org/10.1093/bioinformatics/btab209). 
 
-Key features of `ShinyCell` include: 
+Key features of `ShinyCell` include : 
 
 1. Written in R and uses the Shiny package, allowing for easy sharing on online 
    platforms e.g. [shinyapps.io](https://www.shinyapps.io/) and Amazon Web 
