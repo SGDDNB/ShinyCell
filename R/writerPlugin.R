@@ -36,7 +36,10 @@ writerPlugin <- function(plugInFile,shiny.prefixSet){
 	if(!identical(class(c),"try-error")){
 		code <- c
 	}
-
+	c <- try(gsub("\\{sc1\\}",scRNA,code,ignore.case=TRUE))
+	if(!identical(class(c),"try-error")){
+		code <- c
+	}
 	code <- paste0(code,"\n")
 	#code <- glue::glue(code)
 
