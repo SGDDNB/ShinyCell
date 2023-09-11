@@ -20,23 +20,23 @@ writerPlugin <- function(plugInFile,shiny.prefixSet){
 	code <- readLines(plugInFile,warn = F)
 	code <- paste0(code,collapse="\n")
 
-	c <- try(gsub("\\{sierra\\}",sierra,code,ignore.case=TRUE))
+	c <- try(gsub("\\{sierra\\}",sierra,code,ignore.case=TRUE),silent=TRUE)
 	if(!identical(class(c),"try-error")){
 		code <- c
 	}
-	c <- try(gsub("\\{expression\\}",expression,code,ignore.case=TRUE))
+	c <- try(gsub("\\{expression\\}",expression,code,ignore.case=TRUE),silent=TRUE)
 	if(!identical(class(c),"try-error")){
 		code <- c
 	}
-	c <- try(gsub("\\{scRNA\\}",scRNA,code,ignore.case=TRUE))
+	c <- try(gsub("\\{scRNA\\}",scRNA,code,ignore.case=TRUE),silent=TRUE)
 	if(!identical(class(c),"try-error")){
 		code <- c
 	}
-	c <- try(gsub("\\{atac\\}",atac,code,ignore.case=TRUE))
+	c <- try(gsub("\\{atac\\}",atac,code,ignore.case=TRUE),silent=TRUE)
 	if(!identical(class(c),"try-error")){
 		code <- c
 	}
-	c <- try(gsub("\\{sc1\\}",scRNA,code,ignore.case=TRUE))
+	c <- try(gsub("\\{sc1\\}",scRNA,code,ignore.case=TRUE),silent=TRUE)
 	if(!identical(class(c),"try-error")){
 		code <- c
 	}
