@@ -2143,7 +2143,7 @@ wrUImain <- function(prefix, subst = "", ptsiz = "1.25") {
 			 
 			 #insert from #75 line 2002
 			 '                             "- Plotted as the X-axis of the bubbleplot / heatmap / stacked plot")), \n',
-             '        radioButtons("("{prefix}d1plt", "Plot type:",  \n',
+             '        radioButtons("{prefix}d1plt", "Plot type:",  \n',
              '                     choices = c("Bubbleplot", "Heatmap", "Stacked Violin", "Stacked Boxplot"),  \n',
              '                     selected = "Bubbleplot", inline = FALSE) %>%  \n',
              '          helper(type = "inline", size = "m", fade = TRUE,  \n',
