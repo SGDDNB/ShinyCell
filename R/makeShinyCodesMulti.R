@@ -50,7 +50,7 @@
 makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
                                 shiny.prefix, shiny.headers, shiny.dir, 
                                 enableSubset = TRUE, defPtSiz = 1.25,
-                                ganalytics = NA){
+                                ganalytics = NA,UIpluginCodeFile=NULL,serverPlugInCodeFile_1=NULL,serverPlugInCodeFile_2=NULL){
   ### Checks
   if(length(shiny.prefix) != length(shiny.headers)){
     stop("length of shiny.prefix and shiny.headers does not match!")
@@ -72,9 +72,19 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
       readr::write_file(wrSVload(i), append = TRUE, file = fname)
     }
     readr::write_file(wrSVfix(), append = TRUE, file = fname)
+	if(!is.null(serverPlugInCodeFile_1)){#PYAdded
+		readr::write_file(glue::glue('# PlugIn code from Server file 1 below \n\n'), append = TRUE, file = fname)#PYAdded
+		readr::write_file(writerPlugin(serverPlugInCodeFile_1, shiny.prefixSet=shiny.prefix), append = TRUE, file = fname) #PYAdded
+		readr::write_file(glue::glue('# end PlugIn code from Server file 1 \n\n'), append = TRUE, file = fname)#PYAdded
+	}#PYAdded
     for(i in shiny.prefix){
       readr::write_file(wrSVmain(i, subst), append = TRUE, file = fname)
     }
+	if(!is.null(serverPlugInCodeFile_2)){#PYAdded
+		readr::write_file(glue::glue('# PlugIn code from Server file 2 below \n\n'), append = TRUE, file = fname)#PYAdded
+		readr::write_file(writerPlugin(serverPlugInCodeFile_2, shiny.prefixSet=shiny.prefix), append = TRUE, file = fname) #PYAdded
+		readr::write_file(glue::glue('# end PlugIn code from Server file 2 \n\n'), append = TRUE, file = fname)#PYAdded
+	}
     readr::write_file(wrSVend(), append = TRUE, file = fname)
     
     
@@ -92,10 +102,17 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
                         append = TRUE, file = fname)
       readr::write_file(wrUImain(shiny.prefix[i], subst, defPtSiz[i]), 
                         append = TRUE, file = fname)
-      readr::write_file(glue::glue('), \n\n\n'), append = TRUE, file = fname)
+	  readr::write_file(glue::glue('), \n\n\n'), append = TRUE, file = fname)
     }
-    readr::write_file(wrUIend(shiny.footnotes), append = TRUE, file = fname)
-    
+	if(!is.null(UIpluginCodeFile)){#PYAdded
+		readr::write_file(glue::glue('# PlugIn code from UI file below \n\n'), append = TRUE, file = fname)#PYAdded
+		readr::write_file(writerPlugin(UIpluginCodeFile,shiny.prefixSet=shiny.prefix),append=TRUE,file=fname) #PYAdded						
+		readr::write_file(glue::glue(', \n'), append = TRUE, file = fname) #PYAdded
+		readr::write_file(glue::glue('# end PlugIn code from UI file \n\n'), append = TRUE, file = fname)#PYAdded
+		
+	}
+	    
+	readr::write_file(wrUIend(shiny.footnotes), append = TRUE, file = fname)
     
     ### Write code for google-analytics.html
     if(!is.na(ganalytics)){
@@ -113,9 +130,23 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
       readr::write_file(wrSVload(i), append = TRUE, path = fname)
     }
     readr::write_file(wrSVfix(), append = TRUE, path = fname)
+	
+	if(!is.null(serverPlugInCodeFile_1)){#PYAdded
+		readr::write_file(glue::glue('# PlugIn code from Server file 1 below \n\n'), append = TRUE, path = fname)#PYAdded
+		readr::write_file(writerPlugin(serverPlugInCodeFile_1, shiny.prefixSet=shiny.prefix), append = TRUE, path = fname) #PYAdded
+		readr::write_file(glue::glue('# end PlugIn code from Server file 1 \n\n'), append = TRUE, path = fname)#PYAdded
+	}#PYAdded
+	
     for(i in shiny.prefix){
       readr::write_file(wrSVmain(i, subst), append = TRUE, path = fname)
     }
+	
+	
+	if(!is.null(serverPlugInCodeFile_2)){#PYAdded
+		readr::write_file(glue::glue('# PlugIn code from Server file 2 below \n\n'), append = TRUE, path = fname)#PYAdded
+		readr::write_file(writerPlugin(serverPlugInCodeFile_2, shiny.prefixSet=shiny.prefix), append = TRUE, path = fname) #PYAdded
+		readr::write_file(glue::glue('# end PlugIn code from Server file 2 \n\n'), append = TRUE, path = fname)#PYAdded
+	}
     readr::write_file(wrSVend(), append = TRUE, path = fname)
     
     
@@ -126,7 +157,7 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
     for(i in shiny.prefix){
       readr::write_file(wrUIload(i), append = TRUE, path = fname)
     }
-    readr::write_file(wrUIsingle(shiny.title, ganalytics), append = TRUE, path = fname)
+  
     for(i in seq_along(shiny.prefix)){
       hhh = shiny.headers[i]
       readr::write_file(glue::glue('navbarMenu("{hhh}",'), 
@@ -135,6 +166,14 @@ makeShinyCodesMulti <- function(shiny.title, shiny.footnotes,
                         append = TRUE, path = fname)
       readr::write_file(glue::glue('), \n\n\n'), append = TRUE, path = fname)
     }
+	
+	if(!is.null(UIpluginCodeFile)){#PYAdded
+		readr::write_file(glue::glue('# PlugIn code from UI file below \n\n'), append = TRUE, path = fname)#PYAdded
+		readr::write_file(writerPlugin(UIpluginCodeFile,shiny.prefixSet=shiny.prefix),append=TRUE,path=fname) #PYAdded						
+		readr::write_file(glue::glue(', \n'), append = TRUE, path = fname) #PYAdded
+		readr::write_file(glue::glue('# end PlugIn code from UI file \n\n'), append = TRUE, path = fname)#PYAdded
+		
+	}
     readr::write_file(wrUIend(shiny.footnotes), append = TRUE, path = fname)
     
     
