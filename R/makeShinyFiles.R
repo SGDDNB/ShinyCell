@@ -70,9 +70,21 @@ makeShinyFiles <- function(
   if(class(obj)[1] == "Seurat"){
     # Seurat Object
     if(is.na(gex.assay[1])){gex.assay = "RNA"}
-    gex.matdim = dim(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
-    gex.rownm = rownames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
-    gex.colnm = colnames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
+    if(class(obj@assays[[gex.assay[1]]]) == "Assay5"){
+      # Seurat v5
+      # check if layers are joined
+      if(!(gex.slot[1] %in% names(obj@assays[[gex.assay[1]]]@layers))){
+        stop(paste0("gex.slot not found in gex.assay. ",
+                    "Are layers joined? run obj <- JoinLayers(obj)"))
+      }
+      gex.matdim = dim(obj@assays[[gex.assay[1]]]@layers[[gex.slot[1]]])
+      gex.rownm = rownames(obj)
+      gex.colnm = colnames(obj)
+    }else{
+      gex.matdim = dim(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
+      gex.rownm = rownames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
+      gex.colnm = colnames(slot(obj@assays[[gex.assay[1]]], gex.slot[1]))
+    }
     # defGenes = obj@assays[[gex.assay[1]]]@var.features[1:10]
     defGenes = Seurat::VariableFeatures(obj)[1:10]
     if(is.na(defGenes[1])){
@@ -309,13 +321,22 @@ makeShinyFiles <- function(
   } 
   if(class(obj)[1] == "Seurat"){
     # Seurat Object
-    for(i in 1:floor((gex.matdim[1]-8)/chk)){
-      sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- as.matrix(
-        slot(obj@assays[[gex.assay[1]]], gex.slot[1])[((i-1)*chk+1):(i*chk),])
-    }
-    sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- as.matrix(
-      slot(obj@assays[[gex.assay[1]]], gex.slot[1])[(i*chk+1):gex.matdim[1],])
-    
+    if(class(obj@assays[[gex.assay[1]]]) == "Assay5"){
+      # Seurat v5
+      for(i in 1:floor((gex.matdim[1]-8)/chk)){
+        sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- as.matrix(
+          obj@assays[[gex.assay[1]]]@layers[[gex.slot[1]]][((i-1)*chk+1):(i*chk),])
+      }
+      sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- as.matrix(
+        obj@assays[[gex.assay[1]]]@layers[[gex.slot[1]]][(i*chk+1):gex.matdim[1],])
+    }else{
+      for(i in 1:floor((gex.matdim[1]-8)/chk)){
+        sc1gexpr.grp.data[((i-1)*chk+1):(i*chk), ] <- as.matrix(
+          slot(obj@assays[[gex.assay[1]]], gex.slot[1])[((i-1)*chk+1):(i*chk),])
+      }
+      sc1gexpr.grp.data[(i*chk+1):gex.matdim[1], ] <- as.matrix(
+        slot(obj@assays[[gex.assay[1]]], gex.slot[1])[(i*chk+1):gex.matdim[1],])
+    }    
   } else if (class(obj)[1] == "SingleCellExperiment"){
     # SCE Object
     for(i in 1:floor((gex.matdim[1]-8)/chk)){
