@@ -16,10 +16,9 @@ respectively.
 If you are using `ShinyCell`, please cite [Ouyang et al. ShinyCell: Simple and 
 sharable visualisation of single-cell gene expression data. Bioinformatics, 
 doi:10.1093/bioinformatics/btab209](
-http://dx.doi.org/10.1093/bioinformatics/btab209). The manuscript 
-is recently accepted and we will update the full citation when it is available.
+http://dx.doi.org/10.1093/bioinformatics/btab209). 
 
-Key features of `ShinyCell` include: 
+Key features of `ShinyCell` include : 
 
 1. Written in R and uses the Shiny package, allowing for easy sharing on online 
    platforms e.g. [shinyapps.io](https://www.shinyapps.io/) and Amazon Web 
@@ -185,6 +184,14 @@ heatmap. The genes (rows) and groups (columns) can be furthered clustered
 using hierarchical clustering.
 
 ![](images/quick-shiny5.png)
+
+The eight tab "Single gene analysis" prepares a dotplot or heatmap for a
+single gene using two meta data columns (eg cell type vs developmental time, 
+or cell type vs batch etc). The meta data columns must be populated with at least 
+two different values). This feature was added by David Humphreys and Paul Young 
+from VCCRI.
+
+![](images/quick-shiny6.png)
 
 
 
