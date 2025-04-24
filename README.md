@@ -1,4 +1,6 @@
-# ShinyCell package
+# ShinyCell is now succeeded by ShinyCell2 which is available at https://github.com/the-ouyang-lab/ShinyCell2
+
+
 `ShinyCell` is a R package that allows users to create interactive Shiny-based 
 web applications to visualise single-cell data via (i) visualising cell 
 information and/or gene expression on reduced dimensions e.g. UMAP, (ii) 
